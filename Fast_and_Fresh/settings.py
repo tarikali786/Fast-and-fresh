@@ -39,7 +39,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     "corsheaders",
     'rest_framework',
-
     'college'
 
 ]
@@ -85,18 +84,17 @@ WSGI_APPLICATION = 'Fast_and_Fresh.wsgi.application'
 #         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'djongo',
-        'NAME': 'fast_and_fresh',
-        'CLIENT': {
-            'host': 'mongodb+srv://tarikali7444:tarik7444@laundry.8fqgf.mongodb.net/fast_and_fresh?retryWrites=true&w=majority',
-            'username': 'tarikali7444',
-            'password': 'tarik7444',
-        }
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'Laundry', 
+        'USER': 'postgres',
+        'PASSWORD': 'tarik7444',
+        'HOST': '127.0.0.1', 
+        'PORT': '5432',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -151,19 +149,3 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 #     ]
 # }
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'level': 'INFO',
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'loggers': {
-        'django.db.backends': {
-            'level': 'INFO', 
-            'handlers': ['console'],
-        },
-    },
-}
