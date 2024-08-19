@@ -1,5 +1,8 @@
 from rest_framework import serializers
-from college.models import Employee, EmployeeDailyImage,College,Campus,Faculty,Student
+from college.models import (Employee, EmployeeDailyImage,College,Campus,Faculty,Student,
+                            WashingMashine, WashingMashineCleanImage,DryingMashine,DryingMashineCleanImage,
+                            VehicleExpenses,Vehicle,FoldingTable,complaint
+                            )
 
 class EmployeeDailyImageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -137,3 +140,131 @@ class StudentSerializer(serializers.ModelSerializer):
         
         return super().update(instance, validated_data)
 
+
+
+
+class WashingMashineCleanImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WashingMashineCleanImage
+        fields = ['image']
+
+
+class WashingMashineSerializer(serializers.ModelSerializer):
+    before_and_after_cleaned_image = WashingMashineCleanImageSerializer(many=True, required=False)
+    last_cleaned_by_uid = serializers.UUIDField(write_only=True, required=False)
+    last_cleaned_by = serializers.SerializerMethodField()  # For read-only field
+
+    class Meta:
+        model = WashingMashine
+        fields = '__all__'
+        extra_kwargs = {
+            'last_cleaned_by': {'read_only': True}  # Make sure last_cleaned_by is read-only
+        }
+
+    def create(self, validated_data):
+        last_cleaned_by_uid = validated_data.pop('last_cleaned_by_uid', None)
+        if last_cleaned_by_uid:
+            last_cleaned_by = Employee.objects.get(uid=last_cleaned_by_uid)
+            validated_data['last_cleaned_by'] = last_cleaned_by
+        return super(WashingMashineSerializer, self).create(validated_data)
+
+    def update(self, instance, validated_data):
+        last_cleaned_by_uid = validated_data.pop('last_cleaned_by_uid', None)
+        if last_cleaned_by_uid:
+            last_cleaned_by = Employee.objects.get(uid=last_cleaned_by_uid)
+            validated_data['last_cleaned_by'] = last_cleaned_by
+        return super(WashingMashineSerializer, self).update(instance, validated_data)
+
+    def get_last_cleaned_by(self, obj):
+        if obj.last_cleaned_by:
+            return obj.last_cleaned_by.uid
+        return None
+
+    
+class DryingMashineCleanImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DryingMashineCleanImage
+        fields = ['image']
+
+class DryingMashineSerializer(serializers.ModelSerializer):
+    before_and_after_cleaned_image = DryingMashineCleanImageSerializer(many=True, required=False)
+    last_cleaned_by_uid = serializers.UUIDField(write_only=True, required=False)
+    last_cleaned_by = serializers.SerializerMethodField()  
+
+    class Meta:
+        model = DryingMashine
+        fields = '__all__'
+        extra_kwargs = {
+            'last_cleaned_by': {'read_only': True}  
+        }
+
+    def create(self, validated_data):
+        last_cleaned_by_uid = validated_data.pop('last_cleaned_by_uid', None)
+        if last_cleaned_by_uid:
+            last_cleaned_by = Employee.objects.get(uid=last_cleaned_by_uid)
+            validated_data['last_cleaned_by'] = last_cleaned_by
+        return super(DryingMashineSerializer, self).create(validated_data)
+
+    def update(self, instance, validated_data):
+        last_cleaned_by_uid = validated_data.pop('last_cleaned_by_uid', None)
+        if last_cleaned_by_uid:
+            last_cleaned_by = Employee.objects.get(uid=last_cleaned_by_uid)
+            validated_data['last_cleaned_by'] = last_cleaned_by
+        return super(DryingMashineSerializer, self).update(instance, validated_data)
+
+    def get_last_cleaned_by(self, obj):
+        if obj.last_cleaned_by:
+            return obj.last_cleaned_by.uid
+        return None
+
+    
+
+class VehicleExpensesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VehicleExpenses
+        fields = "__all__"
+
+class VehicleSerializer(serializers.ModelSerializer):
+    last_driver = serializers.SlugRelatedField(
+        slug_field='uid',  
+        queryset=Employee.objects.all()
+    )
+    expenses = serializers.SlugRelatedField(
+        slug_field='uid',  
+        queryset=VehicleExpenses.objects.all()
+    )
+
+    class Meta:
+        model = Vehicle
+        fields = "__all__"
+
+    
+    
+
+
+
+class FoldingTableSerializer(serializers.ModelSerializer):
+    last_used_by = serializers.SlugRelatedField(
+        slug_field='uid',  
+        queryset=Employee.objects.all()
+    )
+   
+
+    class Meta:
+        model = FoldingTable
+        fields = "__all__"
+
+
+class complaintSerializer(serializers.ModelSerializer):
+    employee = serializers.SlugRelatedField(
+        slug_field='uid',  
+        queryset=Employee.objects.all()
+    )
+   
+    campus = serializers.SlugRelatedField(
+        slug_field='uid',  
+        queryset=Campus.objects.all()
+    )
+    class Meta:
+        model = complaint
+        fields = "__all__"

@@ -23,9 +23,6 @@ class CollectionStatus(models.TextChoices):
     DELIVERED_TO_CAMPUS = '9', "Delivered to campus"
     DELIVERED_TO_STUDENT = '10', 'Delivered to student'
 
-class MashineStatus(models.TextChoices):
-    NOT_IN_USE = '0', "Not In use"
-    WORKING = '1', "Working"
 
 # Models
 class College(StatusMixin):
@@ -206,10 +203,14 @@ class WashingMashineCleanImage(UUIDMixin):
         return f"Image {self.id} - {self.image.name}"
 
 class WashingMashine(StatusMixin):
+    Mashing_status = [
+    ("NOT_IN_USE", "Not in Use"),
+    ("Working", "Working"),
+        ]
     mashine_number = models.CharField(max_length=100,  blank=True,null=True)
     last_cleaned_date = models.DateField( blank=True)
     last_cleaned_by = models.ForeignKey('Employee', on_delete=models.CASCADE,  blank=True,null=True)
-    status = models.CharField(max_length=100, choices=MashineStatus.choices,  blank=True,null=True)
+    status = models.CharField(max_length=100, choices=Mashing_status,  blank=True,null=True)
     before_and_after_cleaned_image = models.ManyToManyField(WashingMashineCleanImage, blank=True)
 
     def save(self, *args, **kwargs):
@@ -236,10 +237,14 @@ class DryingMashineCleanImage(UUIDMixin):
     image = models.ImageField(upload_to=upload_location,  blank=True,null=True)
 
 class DryingMashine(StatusMixin):
+    Mashing_status = [
+    ("NOT_IN_USE", "Not in Use"),
+    ("Working", "Working"),
+        ]
     mashine_number = models.CharField(max_length=100,  blank=True,null=True)
     last_cleaned_date = models.DateField( blank=True,null=True)
     last_cleaned_by = models.ForeignKey('Employee', on_delete=models.CASCADE,  blank=True,null=True)
-    status = models.CharField(max_length=100, choices=MashineStatus.choices,  blank=True,null=True)
+    status = models.CharField(max_length=100, choices=Mashing_status,  blank=True,null=True)
     before_and_after_cleaned_image = models.ManyToManyField(DryingMashineCleanImage, blank=True)
 
     def save(self, *args, **kwargs):
