@@ -2,37 +2,70 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from college.models import (Employee, College,Campus,Faculty,Student,
                             WashingMashine, DryingMashine,Vehicle, VehicleExpenses,FoldingTable,
-                            complaint
+                            complaint,Collection
                             )
 from .serializers import (EmployeeSerializer, EmployeeDailyImageSerializer, 
                           CollegeSerializer, CampusSerializer,
                           FacultySerializer,StudentSerializer,
                           WashingMashineSerializer,WashingMashineCleanImageSerializer,
                           DryingMashineSerializer,VehicleSerializer,VehicleExpensesSerializer,
-                          FoldingTableSerializer,complaintSerializer
+                          FoldingTableSerializer,complaintSerializer,CollectionSerializer,
+                          DailyImageSheetSerializer,StudentDaySheetSerializer,FacultyDaySheetSerializer,
+                          StudentRemarkSerializer,RemarkByWarehouseSerializer,
+                          EmployeeSignInserializer
                           )
-
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth import authenticate, login, logout
 
 class EmployeeViewSet(viewsets.GenericViewSet):
     def create(self, request):
-        serializer = EmployeeSerializer(data=request.data)
-        if serializer.is_valid():
-            employee = serializer.save()
-            
-            # Handle the uploaded daily images
-            daily_images_files = request.FILES.getlist('daily_images')
-            for image_file in daily_images_files:
-                image_serializer = EmployeeDailyImageSerializer(data={'image': image_file})
-                if image_serializer.is_valid():
-                    daily_image_instance = image_serializer.save()
-                    employee.daily_images.add(daily_image_instance)
-            
-            return Response({"message": "Employee created successfully", "data": serializer.data}, status=status.HTTP_201_CREATED)
-        else:
-            return Response({"message": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        email = request.data.get("email")
+        if Employee.objects.filter(email=email).exists():
+            return Response({"error": "Email already exists"}, status=status.HTTP_400_BAD_REQUEST)
         
+        else:
+            serializer = EmployeeSerializer(data=request.data)
+            if serializer.is_valid():
+                employee = serializer.save()
+
+                # Handle the uploaded daily images from request.FILES
+                daily_images_files = request.FILES.getlist('daily_images')
+                for image_file in daily_images_files:
+                    image_serializer = EmployeeDailyImageSerializer(data={'image': image_file})
+                    if image_serializer.is_valid():
+                        daily_image_instance = image_serializer.save()
+                        employee.daily_images.add(daily_image_instance)
+
+                return Response({"message": "Employee created successfully", "data": serializer.data}, status=status.HTTP_201_CREATED)
+            else:
+                return Response({"message": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
+
+class EmployeeSignInViewset(viewsets.GenericViewSet):
+    def post(self,request):
+        serializer = EmployeeSignInserializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data.get("email")
+        password = serializer.validated_data.get("password")
+        employee = Employee.objects.filter(email=email).first()
+
+        if employee:
+            # if employee.check_password(password):
+            if employee.password == password:    
+                refresh = RefreshToken.for_user(employee)
+                employee_data= EmployeeSerializer(employee)
+
+                return Response({"data":employee_data.data,"refresh-token": str(refresh), "access-token": str(refresh.access_token)}, status=200)
+            else:
+                return Response({"error": "Invalid password"}, status=status.HTTP_400_BAD_REQUEST)
+            
+                                
+        else:
+            return Response({"error": "Employee not found"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        
 
 
 
@@ -209,3 +242,48 @@ class ComplaintViewSet(viewsets.ModelViewSet):
     queryset = complaint.objects.all()
     serializer_class = complaintSerializer
     lookup_field = 'uid' 
+
+
+class CollectionViewSet(viewsets.GenericViewSet):
+
+    def create(self, request):
+        serializer = CollectionSerializer(data=request.data)
+        if serializer.is_valid():
+            collection = serializer.save()
+
+            # Handle image uploads and related fields
+            self._handle_daily_images(collection, request.FILES.getlist('daily_image_sheet'))
+            self._handle_related_fields(collection, request.data.get('student_day_sheet', []), StudentDaySheetSerializer, 'student_day_sheet')
+            self._handle_related_fields(collection, request.data.get('faculty_day_sheet', []), FacultyDaySheetSerializer, 'faculty_day_sheet')
+            self._handle_related_fields(collection, request.data.get('student_remark', []), StudentRemarkSerializer, 'student_remark')
+            self._handle_related_fields(collection, request.data.get('warehouse_remark', []), RemarkByWarehouseSerializer, 'warehouse_remark')
+
+            # Set ETA based on the college schedule
+            campus_id = request.data.get('campus')
+            if campus_id:
+                try:
+                    campus = Campus.objects.get(id=campus_id)
+                    college = College.objects.get(uid=campus.college)
+                    collection.ETA = college.schedule
+                    collection.save()
+                except Campus.DoesNotExist:
+                    return Response({'error': 'Campus not found'}, status=status.HTTP_404_NOT_FOUND)
+                except College.DoesNotExist:
+                    return Response({'error': 'College not found'}, status=status.HTTP_404_NOT_FOUND)
+
+            return Response({"message": "Collection is created", "data": serializer.data}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def _handle_daily_images(self, collection, daily_images_sheet_files):
+        for image_file in daily_images_sheet_files:
+            image_serializer = DailyImageSheetSerializer(data={'image': image_file})
+            if image_serializer.is_valid():
+                daily_image_sheet_instance = image_serializer.save()
+                collection.daily_image_sheet.add(daily_image_sheet_instance)
+
+    def _handle_related_fields(self, collection, data, serializer_class, field_name):
+        for item in data:
+            serializer = serializer_class(data=item)
+            if serializer.is_valid():
+                instance = serializer.save()
+                getattr(collection, field_name).add(instance)

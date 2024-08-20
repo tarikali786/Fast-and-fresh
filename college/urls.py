@@ -4,6 +4,11 @@ urlpatterns = [
 
     # Employee
     path("add-employee/",EmployeeViewSet.as_view({"post":"create"})),
+    path("login/",EmployeeSignInViewset.as_view({"post":"post"})),
+
+
+    
+
    
     # college
     path("college/", CollegeViewSet.as_view({"get": "list", "post": "create"}), name="college-list-create"),
@@ -55,5 +60,9 @@ urlpatterns = [
     path("complaint/", ComplaintViewSet.as_view({"get": "list", "post": "create"}), name="college-list-create"),
     path("complaint/<uuid:uid>/", ComplaintViewSet.as_view({"get": "retrieve",  "patch": "partial_update", "delete": "destroy"}), name="college-detail"),
 
+    #complaint
+
+    path("collection/", CollectionViewSet.as_view({ "post": "create"}), name="college-list-create"),
+    path("collection/<uuid:uid>/", CollectionViewSet.as_view({"get": "retrieve",  "patch": "partial_update", "delete": "destroy"}), name="college-detail"),
 
 ]

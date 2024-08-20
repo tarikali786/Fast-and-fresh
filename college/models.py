@@ -2,6 +2,8 @@ from django.db import models
 from django.utils import timezone
 from datetime import timedelta
 from core.behaviours import StatusMixin, UUIDMixin
+from django.contrib.auth.models import AbstractUser, BaseUserManager
+import uuid
 
 def upload_location(instance, filename):
     ext_set = filename.split(".")
@@ -39,6 +41,7 @@ class Campus(StatusMixin):
     tag_name = models.CharField(max_length=100,  blank=True,null=True)
     name = models.CharField(max_length=255,  blank=True,null=True)
     college = models.ForeignKey(College, on_delete=models.CASCADE, related_name='campuses',null=True,blank=True)
+    uniform = models.BooleanField(default=False,null=True, blank=True )
 
     def __str__(self):
         return f"{self.name} "
@@ -77,8 +80,27 @@ class EmployeeDailyImage(UUIDMixin):
 
     def __str__(self):
         return f"Image {self.id}"
+class CustomUserManager(BaseUserManager):
+    def create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError('The Email field must be set')
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
 
-class Employee(StatusMixin):
+    def create_superuser(self, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
+
+        return self.create_user(email, password, **extra_fields)
+class Employee(AbstractUser):
     EMPLOYEE_TYPE_CHOICES = [
         ("Admin", "Admin"),
         ("Campus_Employee", "Campus Employee"),
@@ -87,14 +109,21 @@ class Employee(StatusMixin):
         ("Drying", "Drying"),
         ("Segregation", "Segregation"),
     ]
-    name = models.CharField(max_length=300,  blank=True,null=True)
-    mobile = models.BigIntegerField(default=0,  blank=True,null=True)
-    dob = models.DateField( blank=True,null=True)
-    profile_image = models.ImageField(upload_to=upload_location,  blank=True,null=True)
-    employee_type = models.CharField(max_length=20, choices=EMPLOYEE_TYPE_CHOICES,  blank=True,null=True)
-    salary = models.IntegerField(default=0,  blank=True)
-    aadhar_number = models.BigIntegerField( blank=True,null=True ,default=0)
+    uid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
+    email = models.EmailField( unique=True, blank=True, null=True)
+    name = models.CharField(max_length=300, blank=True, null=True)
+    mobile = models.BigIntegerField(default=0, blank=True, null=True)
+    dob = models.DateField(blank=True, null=True)
+    profile_image = models.ImageField(upload_to=upload_location, blank=True, null=True)
+    employee_type = models.CharField(max_length=20, choices=EMPLOYEE_TYPE_CHOICES, blank=True, null=True)
+    salary = models.IntegerField(default=0, blank=True)
+    aadhar_number = models.BigIntegerField(blank=True, null=True, default=0)
     daily_images = models.ManyToManyField(EmployeeDailyImage, blank=True)
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
+
+    objects = CustomUserManager()
 
     def save(self, *args, **kwargs):
         super(Employee, self).save(*args, **kwargs)
@@ -104,16 +133,12 @@ class Employee(StatusMixin):
         if self.daily_images.count() > 30:
             excess_images = self.daily_images.all()[0:self.daily_images.count() - 30]
             for image in excess_images:
-                # Remove the image from the ManyToMany field
                 self.daily_images.remove(image)
-                # Delete the image file from storage
                 image.image.delete(save=False)
-                # Delete the image record from the database
                 image.delete()
 
     def __str__(self) -> str:
-        return self.name
-
+        return self.email
 class DailyImageSheet(UUIDMixin):
     image = models.ImageField(upload_to=upload_location,  blank=True,null=True)
 
