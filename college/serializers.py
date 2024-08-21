@@ -390,8 +390,7 @@ class CollectionSerializer(serializers.ModelSerializer):
 
         # Adding Many-to-Many relationships
         if student_day_sheets_data:
-            print("JKKKK",student_day_sheets_data)
-            input()
+           
             for student_day_sheet_uid in student_day_sheets_data:
                 student_day_sheet_instance = StudentDaySheet.objects.get(uid=student_day_sheet_uid)
                 collection.student_day_sheet.set(student_day_sheet_instance)
