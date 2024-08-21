@@ -2,7 +2,8 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from college.models import (Employee, College,Campus,Faculty,Student,
                             WashingMashine, DryingMashine,Vehicle, VehicleExpenses,FoldingTable,
-                            complaint,Collection
+                            complaint,Collection,StudentDaySheet,FacultyDaySheet,StudentRemark,
+                            RemarkByWarehouse
                             )
 from .serializers import (EmployeeSerializer, EmployeeDailyImageSerializer, 
                           CollegeSerializer, CampusSerializer,
@@ -16,7 +17,7 @@ from .serializers import (EmployeeSerializer, EmployeeDailyImageSerializer,
                           )
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import logout
 
 class EmployeeViewSet(viewsets.GenericViewSet):
     def create(self, request):
@@ -42,6 +43,19 @@ class EmployeeViewSet(viewsets.GenericViewSet):
                 return Response({"message": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
+class AllEmployeeViewset(viewsets.GenericViewSet):
+    queryset = Employee.objects.all()
+    serializer_class = EmployeeSerializer
+    def get(self,request):
+        return Response({"message": "All Employees", "data": self.serializer_class(self.queryset,
+                                                                                   many=True).data}, status=status.HTTP_200_OK)
+    
+class EmployeeLogoutViewset(viewsets.GenericViewSet):
+    permission_classes =[IsAuthenticated]
+    def logout(self, request):
+        logout(request)
+        return Response({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
+    
 
 class EmployeeSignInViewset(viewsets.GenericViewSet):
     def post(self,request):
@@ -244,46 +258,32 @@ class ComplaintViewSet(viewsets.ModelViewSet):
     lookup_field = 'uid' 
 
 
-class CollectionViewSet(viewsets.GenericViewSet):
 
-    def create(self, request):
-        serializer = CollectionSerializer(data=request.data)
-        if serializer.is_valid():
-            collection = serializer.save()
+class StudentDaySheetViewset(viewsets.ModelViewSet):
+    queryset = StudentDaySheet.objects.all()
+    serializer_class = StudentDaySheetSerializer
+    lookup_field = 'uid' 
+   
 
-            # Handle image uploads and related fields
-            self._handle_daily_images(collection, request.FILES.getlist('daily_image_sheet'))
-            self._handle_related_fields(collection, request.data.get('student_day_sheet', []), StudentDaySheetSerializer, 'student_day_sheet')
-            self._handle_related_fields(collection, request.data.get('faculty_day_sheet', []), FacultyDaySheetSerializer, 'faculty_day_sheet')
-            self._handle_related_fields(collection, request.data.get('student_remark', []), StudentRemarkSerializer, 'student_remark')
-            self._handle_related_fields(collection, request.data.get('warehouse_remark', []), RemarkByWarehouseSerializer, 'warehouse_remark')
+class FacultyDaySheetViewset(viewsets.ModelViewSet):
+    queryset = FacultyDaySheet.objects.all()
+    serializer_class = FacultyDaySheetSerializer
+    lookup_field = 'uid' 
+    
 
-            # Set ETA based on the college schedule
-            campus_id = request.data.get('campus')
-            if campus_id:
-                try:
-                    campus = Campus.objects.get(id=campus_id)
-                    college = College.objects.get(uid=campus.college)
-                    collection.ETA = college.schedule
-                    collection.save()
-                except Campus.DoesNotExist:
-                    return Response({'error': 'Campus not found'}, status=status.HTTP_404_NOT_FOUND)
-                except College.DoesNotExist:
-                    return Response({'error': 'College not found'}, status=status.HTTP_404_NOT_FOUND)
+class StudentRemarkViewset(viewsets.ModelViewSet):
+    queryset = StudentRemark.objects.all()
+    serializer_class = StudentRemarkSerializer
+    lookup_field = 'uid' 
 
-            return Response({"message": "Collection is created", "data": serializer.data}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class RemarkByWarehouseViewset(viewsets.ModelViewSet):
+    queryset = RemarkByWarehouse.objects.all()
+    serializer_class = RemarkByWarehouseSerializer
+    lookup_field = 'uid' 
 
-    def _handle_daily_images(self, collection, daily_images_sheet_files):
-        for image_file in daily_images_sheet_files:
-            image_serializer = DailyImageSheetSerializer(data={'image': image_file})
-            if image_serializer.is_valid():
-                daily_image_sheet_instance = image_serializer.save()
-                collection.daily_image_sheet.add(daily_image_sheet_instance)
+class CollectionViewSet(viewsets.ModelViewSet):
+    queryset = Collection.objects.all()
+    serializer_class = CollectionSerializer
+    lookup_field = 'uid' 
 
-    def _handle_related_fields(self, collection, data, serializer_class, field_name):
-        for item in data:
-            serializer = serializer_class(data=item)
-            if serializer.is_valid():
-                instance = serializer.save()
-                getattr(collection, field_name).add(instance)
+    

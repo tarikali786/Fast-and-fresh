@@ -12,19 +12,6 @@ def upload_location(instance, filename):
 
 
 
-class CollectionStatus(models.TextChoices):
-    READY_TO_PICK = '0', "Ready to Pick"
-    IN_TRANSIT = '1', "In Transit"
-    WASHING = '2', "Washing"
-    WASHING_DONE = '3', "Washing done"
-    DRYING = '4', "Drying"
-    DRYING_DONE = '5', "Drying done"
-    IN_SEGREGATION = '6', "In Segregation"
-    SEGREGATION_DONE = '7', "Segregation done"
-    READY_FOR_DELIVERY = '8', "Ready for Delivery"
-    DELIVERED_TO_CAMPUS = '9', "Delivered to campus"
-    DELIVERED_TO_STUDENT = '10', 'Delivered to student'
-
 
 # Models
 class College(StatusMixin):
@@ -157,14 +144,14 @@ class FacultyDaySheet(UUIDMixin):
     def __str__(self) -> str:
         return self.tag_number
 
-class StudentRemark(models.Model):
+class StudentRemark(UUIDMixin):
     tag_number = models.CharField(max_length=20,  blank=True,null=True)
     remark = models.TextField(blank=True,null=True)
 
     def __str__(self) -> str:
         return self.tag_number
 
-class RemarkByWarehouse(models.Model):
+class RemarkByWarehouse(UUIDMixin):
     tag_number = models.CharField(max_length=20,  blank=True,null=True)
     remark = models.TextField(blank=True,null=True)
     employee = models.ForeignKey(Employee,blank=True,null=True, on_delete=models.CASCADE)
@@ -174,6 +161,19 @@ class RemarkByWarehouse(models.Model):
 
 
 class Collection(StatusMixin):
+    CollectionStatus =[
+        ("READY_TO_PICK","READY_TO_PICK"),
+        ("IN_TRANSIT","IN_TRANSIT"),
+        ("WASHING","WASHING"),
+        ("WASHING_DONE","WASHING_DONE"),
+        ("DRYING","DRYING"),
+        ("DRYING_DONE","DRYING_DONE"),
+        ("IN_SEGREGATION","IN_SEGREGATION"),
+        ("SEGREGATION_DONE","SEGREGATION_DONE"),
+        ("READY_FOR_DELIVERY","READY_FOR_DELIVERY"),
+        ("DELIVERED_TO_CAMPUS","DELIVERED_TO_CAMPUS"),
+        ("DELIVERED_TO_STUDENT","DELIVERED_TO_STUDENT"),
+    ]
     campus = models.ForeignKey(Campus, on_delete=models.CASCADE,  blank=True,null=True)
     student_day_sheet = models.ManyToManyField(StudentDaySheet, blank=True)
     faculty_day_sheet = models.ManyToManyField(FacultyDaySheet, blank=True)
@@ -194,29 +194,13 @@ class Collection(StatusMixin):
     segregation_supervisor = models.ForeignKey(Employee,  blank=True,null=True, on_delete=models.CASCADE, related_name='segregation_supervisions')
     drop_driver = models.ForeignKey(Employee,  blank=True,null=True,on_delete=models.CASCADE, related_name='drop_drivers')
     college_supervisor = models.ForeignKey(Employee,  blank=True,null=True, on_delete=models.CASCADE, related_name='college_supervisions')
-    current_status = models.CharField(max_length=100, choices=CollectionStatus.choices, blank=True,null=True )
+    current_status = models.CharField(max_length=100, choices=CollectionStatus, blank=True,null=True )
     ETA = models.IntegerField(  blank=True,null=True)  #fatch college shcedule
     student_remark = models.ManyToManyField(StudentRemark,blank=True)
     warehouse_remark = models.ManyToManyField(RemarkByWarehouse,blank=True)
 
 
-    def save(self, *args, **kwargs):
-        # Calculate total_cloths
-        self.total_cloths = sum(
-            student_sheet.regular_cloths for student_sheet in self.student_day_sheet.all()
-        ) + sum(
-            faculty_sheet.regular_cloths for faculty_sheet in self.faculty_day_sheet.all()
-        )
-
-        # Calculate total_uniforms
-        self.total_uniforms = sum(
-            student_sheet.uniforms for student_sheet in self.student_day_sheet.all()
-        ) + sum(
-            faculty_sheet.uniforms for faculty_sheet in self.faculty_day_sheet.all()
-        )
-
-        # Save the instance
-        super(Collection, self).save(*args, **kwargs)
+   
 
     def __str__(self):
         return f"Collection {self.id} - {self.current_status}"

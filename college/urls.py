@@ -1,11 +1,14 @@
 from django.urls import path
 from college.views import *
+from rest_framework_simplejwt.views import TokenRefreshView
 urlpatterns = [
 
     # Employee
     path("add-employee/",EmployeeViewSet.as_view({"post":"create"})),
     path("login/",EmployeeSignInViewset.as_view({"post":"post"})),
-
+    path("logout/",EmployeeLogoutViewset.as_view({"post":"logout"})),
+    path('refresh-token/', TokenRefreshView.as_view(), name='token_refresh'),
+    path("all-employee/",AllEmployeeViewset.as_view({"get":"get"})),
 
     
 
@@ -60,9 +63,30 @@ urlpatterns = [
     path("complaint/", ComplaintViewSet.as_view({"get": "list", "post": "create"}), name="college-list-create"),
     path("complaint/<uuid:uid>/", ComplaintViewSet.as_view({"get": "retrieve",  "patch": "partial_update", "delete": "destroy"}), name="college-detail"),
 
-    #complaint
+    #StudentDaySheet
 
-    path("collection/", CollectionViewSet.as_view({ "post": "create"}), name="college-list-create"),
+    path("student-daysheet/", StudentDaySheetViewset.as_view({"get": "list", "post": "create"}), name="college-list-create"),
+    path("student-daysheet/<uuid:uid>/", StudentDaySheetViewset.as_view({"get": "retrieve",  "patch": "partial_update", "delete": "destroy"}), name="college-detail"),
+
+    #FacultyDaySheet
+
+    path("faculty-daysheet/", FacultyDaySheetViewset.as_view({"get": "list", "post": "create"}), name="college-list-create"),
+    path("faculty-daysheet/<uuid:uid>/", FacultyDaySheetViewset.as_view({"get": "retrieve",  "patch": "partial_update", "delete": "destroy"}), name="college-detail"),
+    
+    #Student Remark
+
+    path("student-remark/", StudentRemarkViewset.as_view({"get": "list", "post": "create"}), name="college-list-create"),
+    path("student-remark/<uuid:uid>/", StudentRemarkViewset.as_view({"get": "retrieve",  "patch": "partial_update", "delete": "destroy"}), name="college-detail"),
+
+    #RemarkByWarehouse
+
+    path("remark-by-whare-house/", RemarkByWarehouseViewset.as_view({"get": "list", "post": "create"}), name="college-list-create"),
+    path("remark-by-whare-house/<uuid:uid>/", RemarkByWarehouseViewset.as_view({"get": "retrieve",  "patch": "partial_update", "delete": "destroy"}), name="college-detail"),
+
+
+    #collection
+
+    path("collection/", CollectionViewSet.as_view({ "post": "create","get": "list",}), name="college-list-create"),
     path("collection/<uuid:uid>/", CollectionViewSet.as_view({"get": "retrieve",  "patch": "partial_update", "delete": "destroy"}), name="college-detail"),
 
 ]
