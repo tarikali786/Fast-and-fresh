@@ -564,14 +564,43 @@ class CollectionViewSet(viewsets.GenericViewSet):
 class GetCampusDetailsByUIDsViewset(viewsets.GenericViewSet):
     def get(self,request,uid):
         try:
-            campus_instance = Campus.objects.filter(college__uid=uid)
-            campus_serializer = CampusSerializer(campus_instance,many=True)
-            return Response({"message": "College Campus Details", "data": campus_serializer.data}, status=status.HTTP_200_OK)
-        
-        except Campus.DoesNotExist:
-            return Response({'error': 'College Campus Details Not Found'}, status=status.HTTP_404_NOT_FOUND) 
+            # Fetch colleges associated with the employee UID
+            colleges = College.objects.filter(campus_employee__uid=uid).distinct()
 
+            if not colleges.exists():
+                return Response(
+                    {"message": "No college found for the provided employee UID."},
+                    status=status.HTTP_404_NOT_FOUND
+                )
 
+            college_campus_details = []
+
+            for college in colleges:
+                # Get all campuses associated with the filtered college
+                campuses = Campus.objects.filter(college=college)
+
+                # Serialize the college and associated campuses
+                college_serializer = CollegeSerializer(college)
+                campus_serializer = CampusSerializer(campuses, many=True)
+
+                college_campus_details.append({
+                    "college": college_serializer.data,
+                    "campuses": campus_serializer.data
+                })
+
+            return Response(
+                {
+                    "message": "College and associated campuses fetched successfully.",
+                    "data": college_campus_details
+                },
+                status=status.HTTP_200_OK
+            )
+
+        except Exception as e:
+            return Response(
+                {"error": "An error occurred while fetching college and campus details.", "details": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 class GetFacultyListViewset(viewsets.GenericViewSet):
     def get(self,request,uid):
