@@ -1,5 +1,11 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
+from django.db.models import Q
+import json
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth import logout
+from django.shortcuts import get_object_or_404
 from college.models import (Employee, College,Campus,Faculty,Student,
                             WashingMashine, DryingMashine,Vehicle, VehicleExpenses,FoldingTable,
                             complaint,Collection,StudentDaySheet,FacultyDaySheet,StudentRemark,
@@ -15,9 +21,7 @@ from .serializers import (EmployeeSerializer, EmployeeDailyImageSerializer,
                           StudentRemarkSerializer,RemarkByWarehouseSerializer,
                           EmployeeSignInserializer
                           )
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.permissions import IsAuthenticated
-from django.contrib.auth import logout
+
 
 class EmployeeViewSet(viewsets.GenericViewSet):
     def create(self, request):
@@ -280,10 +284,444 @@ class RemarkByWarehouseViewset(viewsets.ModelViewSet):
     queryset = RemarkByWarehouse.objects.all()
     serializer_class = RemarkByWarehouseSerializer
     lookup_field = 'uid' 
-
-class CollectionViewSet(viewsets.ModelViewSet):
-    queryset = Collection.objects.all()
-    serializer_class = CollectionSerializer
-    lookup_field = 'uid' 
-
+class CollectionViewSet(viewsets.GenericViewSet):
     
+    def create(self, request):
+        serializer = CollectionSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            collection_instance = serializer.save()
+
+            campus_uid = request.data.get('campus_uid')
+            supervisor_uid = request.data.get('supervisor_uid')
+
+
+            pickup_driver_uid = request.data.get('pickup_driver_uid',[])
+            drying_supervisor_uid = request.data.get('drying_supervisor_uid',[])
+            segregation_supervisor_uid = request.data.get('segregation_supervisor_uid',[])
+            drop_driver_uid = request.data.get('drop_driver_uid',[])
+            college_supervisor_uid = request.data.get('college_supervisor_uid',[])
+
+           
+            try:
+                campus_instance = Campus.objects.get(uid=campus_uid)
+                collection_instance.campus = campus_instance
+                college_instance = College.objects.get(uid=campus_instance.college.uid)
+            except Campus.DoesNotExist:
+                return Response({'error': 'Campus not found'}, status=status.HTTP_404_NOT_FOUND)
+
+            try:
+                supervisor_instance = Employee.objects.get(uid=supervisor_uid)
+                collection_instance.supervisor = supervisor_instance
+            except Employee.DoesNotExist:
+                return Response({'error': 'Supervisor not found'}, status=status.HTTP_404_NOT_FOUND)
+                # Handle optional Employee-related fields
+            if pickup_driver_uid:
+                try:
+                    pickup_driver_instance = Employee.objects.get(uid=pickup_driver_uid)
+                    collection_instance.pickup_driver = pickup_driver_instance
+                except Employee.DoesNotExist:
+                    return Response({'error': 'Pickup driver not found'}, status=status.HTTP_404_NOT_FOUND)
+
+            if drying_supervisor_uid:
+                try:
+                    drying_supervisor_instance = Employee.objects.get(uid=drying_supervisor_uid)
+                    collection_instance.drying_supervisor = drying_supervisor_instance
+                except Employee.DoesNotExist:
+                    return Response({'error': 'Drying supervisor not found'}, status=status.HTTP_404_NOT_FOUND)
+
+            if segregation_supervisor_uid:
+                try:
+                    segregation_supervisor_instance = Employee.objects.get(uid=segregation_supervisor_uid)
+                    collection_instance.segregation_supervisor = segregation_supervisor_instance
+                except Employee.DoesNotExist:
+                    return Response({'error': 'Segregation supervisor not found'}, status=status.HTTP_404_NOT_FOUND)
+
+            if drop_driver_uid:
+                try:
+                    drop_driver_instance = Employee.objects.get(uid=drop_driver_uid)
+                    collection_instance.drop_driver = drop_driver_instance
+                except Employee.DoesNotExist:
+                    return Response({'error': 'Drop driver not found'}, status=status.HTTP_404_NOT_FOUND)
+
+            if college_supervisor_uid:
+                try:
+                    college_supervisor_instance = Employee.objects.get(uid=college_supervisor_uid)
+                    collection_instance.college_supervisor = college_supervisor_instance
+                except Employee.DoesNotExist:
+                    return Response({'error': 'College supervisor not found'}, status=status.HTTP_404_NOT_FOUND)
+
+            # Update the ETA based on the college's schedule
+            collection_instance.ETA = college_instance.schedule
+            collection_instance.save()
+            
+            # Save nested related objects
+            student_day_sheet= json.loads(request.data.get('student_day_sheet', '[]'))
+            for student_day in student_day_sheet:
+                student_day_sheet_serializer = StudentDaySheetSerializer(data=student_day)
+                if student_day_sheet_serializer.is_valid():
+                    student_day_sheet_instance = student_day_sheet_serializer.save()
+                    collection_instance.student_day_sheet.add(student_day_sheet_instance)
+
+
+            faculty_day_sheet = json.loads(request.data.get('faculty_day_sheet', '[]'))
+            for faculty_day in faculty_day_sheet:
+                faculty_day_sheet_serializer = FacultyDaySheetSerializer(data=faculty_day)
+                if faculty_day_sheet_serializer.is_valid():
+                    faculty_day_sheet_instance = faculty_day_sheet_serializer.save()
+                    collection_instance.faculty_day_sheet.add(faculty_day_sheet_instance)
+
+
+            student_remark_list  = json.loads(request.data.get('student_remark', '[]'))
+            if student_remark_list is not None:
+                for student_remark in student_remark_list:
+                    student_remark_serializer = FacultyDaySheetSerializer(data=student_remark)
+                    if student_remark_serializer.is_valid():
+                        student_remark_instance = student_remark_serializer.save()
+                        collection_instance.student_remark.add(student_remark_instance)
+
+            warehouse_remark_list  = json.loads(request.data.get('student_remark', '[]'))
+            if student_remark_list is not None:
+                for warehouse_remark in warehouse_remark_list:
+                    warehouse_remark_serializer = FacultyDaySheetSerializer(data=warehouse_remark)
+                    if warehouse_remark_serializer.is_valid():
+                        warehouse_remark_instance = warehouse_remark_serializer.save()
+                        collection_instance.warehouse.add(warehouse_remark_instance)
+            
+            # Handle the uploaded daily images from request.FILES
+            daily_image_sheet_file = request.FILES.getlist('daily_image_sheet')
+            for image_file in daily_image_sheet_file:
+                image_serializer = DailyImageSheetSerializer(data={'image': image_file})
+                if image_serializer.is_valid():
+                    daily_image_instance = image_serializer.save()
+                    collection_instance.daily_image_sheet.add(daily_image_instance)
+            
+            collection_instance.save()
+            
+            collection_serializer = CollectionSerializer(collection_instance)
+            return Response({"message": "Collection created successfully", "data": collection_serializer.data}, status=status.HTTP_201_CREATED)
+        else:
+            return Response({'error': 'Invalid Request'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+    def update(self, request, uid=None):
+
+        try:
+            collection_instance = Collection.objects.get(uid=uid)
+        except Collection.DoesNotExist:
+            return Response({'error': 'Collection not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = CollectionSerializer(collection_instance, data=request.data, partial=True)
+        if serializer.is_valid(raise_exception=True):
+            collection_instance = serializer.save()
+            
+            campus_uid = request.data.get('campus_uid')
+            supervisor_uid = request.data.get('supervisor_uid')
+
+            # Optional fields update
+            pickup_driver_uid = request.data.get('pickup_driver_uid')
+            drying_supervisor_uid = request.data.get('drying_supervisor_uid')
+            segregation_supervisor_uid = request.data.get('segregation_supervisor_uid')
+            drop_driver_uid = request.data.get('drop_driver_uid')
+            college_supervisor_uid = request.data.get('college_supervisor_uid')
+
+            # Update related employees if provided
+            print(pickup_driver_uid)
+            if pickup_driver_uid:
+                try:
+                    pickup_driver_instance = Employee.objects.get(uid=pickup_driver_uid)
+                    collection_instance.pickup_driver = pickup_driver_instance
+                    print("done")
+                except Employee.DoesNotExist:
+                    return Response({'error': 'Pickup driver not found'}, status=status.HTTP_404_NOT_FOUND)
+          
+            if campus_uid:
+                try:
+                    campus_instance = Campus.objects.get(uid=campus_uid)
+                    collection_instance.campus = campus_instance
+                except Campus.DoesNotExist:
+                    return Response({'error': 'Campus not found'}, status=status.HTTP_404_NOT_FOUND)
+            
+            if supervisor_uid:
+                try:
+                    supervisor_instance = Employee.objects.get(uid=supervisor_uid)
+                    collection_instance.supervisor = supervisor_instance
+                except Employee.DoesNotExist:
+                    return Response({'error': 'supervisor not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+            if drying_supervisor_uid:
+                try:
+                    drying_supervisor_instance = Employee.objects.get(uid=drying_supervisor_uid)
+                    collection_instance.drying_supervisor = drying_supervisor_instance
+                except Employee.DoesNotExist:
+                    return Response({'error': 'Drying supervisor not found'}, status=status.HTTP_404_NOT_FOUND)
+
+            if segregation_supervisor_uid:
+                try:
+                    segregation_supervisor_instance = Employee.objects.get(uid=segregation_supervisor_uid)
+                    collection_instance.segregation_supervisor = segregation_supervisor_instance
+                except Employee.DoesNotExist:
+                    return Response({'error': 'Segregation supervisor not found'}, status=status.HTTP_404_NOT_FOUND)
+
+            if drop_driver_uid:
+                try:
+                    drop_driver_instance = Employee.objects.get(uid=drop_driver_uid)
+                    collection_instance.drop_driver = drop_driver_instance
+                except Employee.DoesNotExist:
+                    return Response({'error': 'Drop driver not found'}, status=status.HTTP_404_NOT_FOUND)
+
+            if college_supervisor_uid:
+                try:
+                    college_supervisor_instance = Employee.objects.get(uid=college_supervisor_uid)
+                    collection_instance.college_supervisor = college_supervisor_instance
+                except Employee.DoesNotExist:
+                    return Response({'error': 'College supervisor not found'}, status=status.HTTP_404_NOT_FOUND)
+
+            # Update related nested objects if provided
+            if 'student_day_sheet' in request.data:
+                collection_instance.student_day_sheet.clear()
+                student_day_sheet = json.loads(request.data.get('student_day_sheet', '[]'))
+                for student_day in student_day_sheet:
+                    student_day_sheet_serializer = StudentDaySheetSerializer(data=student_day)
+                    if student_day_sheet_serializer.is_valid():
+                        student_day_sheet_instance = student_day_sheet_serializer.save()
+                        collection_instance.student_day_sheet.add(student_day_sheet_instance)
+
+            if 'faculty_day_sheet' in request.data:
+                collection_instance.faculty_day_sheet.clear()
+                faculty_day_sheet = json.loads(request.data.get('faculty_day_sheet', '[]'))
+                for faculty_day in faculty_day_sheet:
+                    faculty_day_sheet_serializer = FacultyDaySheetSerializer(data=faculty_day)
+                    if faculty_day_sheet_serializer.is_valid():
+                        faculty_day_sheet_instance = faculty_day_sheet_serializer.save()
+                        collection_instance.faculty_day_sheet.add(faculty_day_sheet_instance)
+
+            # Handle remarks update
+            if 'student_remark' in request.data:
+                collection_instance.student_remark.clear()
+                student_remark_list = json.loads(request.data.get('student_remark', '[]'))
+                for student_remark in student_remark_list:
+                    student_remark_serializer = StudentRemarkSerializer(data=student_remark)
+                    if student_remark_serializer.is_valid():
+                        student_remark_instance = student_remark_serializer.save()
+                        collection_instance.student_remark.add(student_remark_instance)
+
+            if 'warehouse_remark' in request.data:
+                collection_instance.warehouse.clear()
+                warehouse_remark_list = json.loads(request.data.get('warehouse_remark', '[]'))
+                for warehouse_remark in warehouse_remark_list:
+                    warehouse_remark_serializer = RemarkByWarehouseSerializer(data=warehouse_remark)
+                    if warehouse_remark_serializer.is_valid():
+                        warehouse_remark_instance = warehouse_remark_serializer.save()
+                        collection_instance.warehouse.add(warehouse_remark_instance)
+
+            # Handle daily images update
+            if 'daily_image_sheet' in request.FILES:
+                collection_instance.daily_image_sheet.clear()
+                daily_image_sheet_file = request.FILES.getlist('daily_image_sheet')
+                for image_file in daily_image_sheet_file:
+                    image_serializer = DailyImageSheetSerializer(data={'image': image_file})
+                    if image_serializer.is_valid():
+                        daily_image_instance = image_serializer.save()
+                        collection_instance.daily_image_sheet.add(daily_image_instance)
+
+            collection_instance.save()
+
+            collection_serializer = CollectionSerializer(collection_instance)
+            return Response({"message": "Collection updated successfully", "data": collection_serializer.data}, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'Invalid Request'}, status=status.HTTP_400_BAD_REQUEST)
+
+   
+
+    def delete(self, request, uid=None):
+        try:
+            collection_instance = Collection.objects.get(uid=uid)
+            collection_instance.delete()
+            return Response({"message": "Collection deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+        except Collection.DoesNotExist:
+            return Response({'error': 'Collection not found'}, status=status.HTTP_404_NOT_FOUND)
+   
+    def retrieve(self, request, uid=None):
+        try:
+            collection_instance = Collection.objects.get(uid=uid)
+            collection_serializer = CollectionSerializer(collection_instance)
+            return Response({"message": "Collection retrieved successfully", "data": collection_serializer.data}, status=status.HTTP_200_OK)
+        except Collection.DoesNotExist:
+            return Response({'error': 'Collection not found'}, status=status.HTTP_404_NOT_FOUND)
+
+            
+
+    def list(self, request):
+        collections = Collection.objects.all()
+        collection_serializer = CollectionSerializer(collections, many=True)
+        return Response({"message": "Collections retrieved successfully", "data": collection_serializer.data}, status=status.HTTP_200_OK)
+
+
+# step2
+
+class GetCampusDetailsByUIDsViewset(viewsets.GenericViewSet):
+    def get(self,request,uid):
+        try:
+            campus_instance = Campus.objects.filter(college__uid=uid)
+            campus_serializer = CampusSerializer(campus_instance,many=True)
+            return Response({"message": "College Campus Details", "data": campus_serializer.data}, status=status.HTTP_200_OK)
+        
+        except Campus.DoesNotExist:
+            return Response({'error': 'College Campus Details Not Found'}, status=status.HTTP_404_NOT_FOUND) 
+
+
+
+class GetFacultyListViewset(viewsets.GenericViewSet):
+    def get(self,request,uid):
+        try:
+            faculty_instance = Faculty.objects.filter(campus__uid = uid)
+            faculty_serializer = FacultySerializer(faculty_instance,many=True)
+            return Response({"message": "Faculty List", "data": faculty_serializer.data}, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            return Response({'error': 'Faculty List Not Found'}, status=status.HTTP_404_NOT_FOUND)
+        
+
+
+
+class GetEmployeeCollectionsViewset(viewsets.GenericViewSet):
+    def get(self, request, uid):
+        try:
+            # Filter collections by any of the employee-related fields using the employee UID
+            collections = Collection.objects.filter(
+                Q(supervisor__uid=uid) |
+                Q(pickup_driver__uid=uid) |
+                Q(washing_supervisor__uid=uid) |
+                Q(drying_supervisor__uid=uid) |
+                Q(segregation_supervisor__uid=uid) |
+                Q(drop_driver__uid=uid) |
+                Q(college_supervisor__uid=uid)
+            )
+
+            if not collections.exists():
+                return Response(
+                    {"message": "No collections found for the provided employee UID."},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+            # Serialize the collections
+            collection_serializer = CollectionSerializer(collections, many=True)
+
+            return Response(
+                {"message": "Employee Collections", "data": collection_serializer.data},
+                status=status.HTTP_200_OK
+            )
+
+        except Exception as e:
+            # Handle any unexpected errors
+            return Response(
+                {"error": "An error occurred while retrieving the collections.", "details": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
+
+
+class GetStudentDetailsViewset(viewsets.GenericViewSet):
+    def post(self, request):
+        tag_number = request.data.get('tag_number')
+        campus_uid = request.data.get('campus_uid')
+
+        if not tag_number or not campus_uid:
+            return Response(
+                {"error": "Both tag_number and campus_uid must be provided."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            # Fetch the campus instance using the provided UID
+            campus_instance = get_object_or_404(Campus, uid=campus_uid)
+            
+            # Fetch the student using the tag_number and campus
+            student_instance = get_object_or_404(Student, tag_number=tag_number, campus=campus_instance)
+            
+            # Serialize the student instance
+            student_serializer = StudentSerializer(student_instance)
+            
+            return Response(
+                {"message": "Student Details", "data": student_serializer.data},
+                status=status.HTTP_200_OK
+            )
+
+        except Exception as e:
+            # Handle any unexpected errors
+            return Response(
+                {"error": "An error occurred while retrieving the student details.", "details": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
+
+
+class LatestCollectionViewset(viewsets.GenericViewSet):
+    def get(self, request):
+        try:
+            # Retrieve the latest collection based on the created_at field
+            latest_collection = Collection.objects.latest('created_at')
+            
+            return Response(
+                {"latest_collection_id": latest_collection.id},
+                status=status.HTTP_200_OK
+            )
+        
+        except Collection.DoesNotExist:
+            return Response(
+                {"message": "No collections found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        except Exception as e:
+            return Response(
+                {"error": "An error occurred while retrieving the latest collection.", "details": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
+class FilterCollectionsByStudentViewset(viewsets.GenericViewSet):
+    def post(self, request):
+        tag_number = request.data.get('tag_number')
+        campus_uid = request.data.get('campus_uid')
+
+        if not tag_number or not campus_uid:
+            return Response(
+                {"error": "Both tag_number and campus_uid must be provided."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            # Filter collections based on campus UID and tag_number in the related StudentDaySheet model
+            collection_instance = Collection.objects.filter(
+                campus__uid=campus_uid,  # Adjusted to filter by campus UID
+                student_day_sheet__tag_number=tag_number  # Filtering through the related StudentDaySheet model
+            )
+
+            undelivered_day_sheets_collection = collection_instance.filter(
+                student_day_sheet__delivered=False
+            )
+
+            if undelivered_day_sheets_collection.exists():
+                # Serialize collections
+                collection_serializer = CollectionSerializer(undelivered_day_sheets_collection, many=True)
+                
+                return Response(
+                    {
+                        "message": "Filtered Collections where Student Day Sheets are undelivered",
+                        "collections": collection_serializer.data
+                    },
+                    status=status.HTTP_200_OK
+                )
+            else:
+                return Response(
+                    {"message": "No undelivered student day sheets found for this student."},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+        except Exception as e:
+            return Response(
+                {"error": "An error occurred while filtering collections.", "details": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

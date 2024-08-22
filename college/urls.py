@@ -86,7 +86,17 @@ urlpatterns = [
 
     #collection
 
-    path("collection/", CollectionViewSet.as_view({ "post": "create","get": "list",}), name="college-list-create"),
-    path("collection/<uuid:uid>/", CollectionViewSet.as_view({"get": "retrieve",  "patch": "partial_update", "delete": "destroy"}), name="college-detail"),
+    path("collection/", CollectionViewSet.as_view({ "post": "create","get":"list"}), name="college-list-create"),
+    path("collection/<uuid:uid>/", CollectionViewSet.as_view({"get": "retrieve",  "patch": "update", "delete": "delete"}), name="college-detail"),
+
+
+    # Mics
+    path("get-campus-details/<uuid:uid>/",GetCampusDetailsByUIDsViewset.as_view({"get":"get"})),
+    path("get-faculty-list/<uuid:uid>/",GetFacultyListViewset.as_view({"get":"get"})),
+    path("get-employee-collection-list/<uuid:uid>/",GetEmployeeCollectionsViewset.as_view({"get":"get"})),
+    path("get-studnet-details/",GetStudentDetailsViewset.as_view({"post":"post"})),
+    path("get-latest-collection/",LatestCollectionViewset.as_view({"get":"get"})),
+    path("get-non-delivered-student-daysheet-collection/",FilterCollectionsByStudentViewset.as_view({"post":"post"})),
+
 
 ]

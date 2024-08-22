@@ -35,7 +35,7 @@ class Campus(StatusMixin):
 
 class Faculty(StatusMixin):
     name = models.CharField(max_length=300,  blank=True,null=True)
-    college = models.ForeignKey(College, on_delete=models.CASCADE,  blank=True, null=True ,related_name='faculties')
+    campus = models.ForeignKey(Campus, on_delete=models.CASCADE,  blank=True, null=True ,related_name='faculties')
 
     def __str__(self):
         return self.name.capitalize()
@@ -50,14 +50,7 @@ class Student(StatusMixin):
     year = models.DateField( blank=True)
     branch = models.CharField(max_length=300,  blank=True,null=True)
 
-    def save(self, *args, **kwargs):
-        if self.campus:
-            if not self.tag_number:
-                campus_tag_name = self.campus.tag_name
-                student_count = Student.objects.filter(campus=self.campus).count() + 1
-                self.tag_number = f"{campus_tag_name}{student_count:03d}"
-        
-        super(Student, self).save(*args, **kwargs)
+    
 
     def __str__(self):
         return self.name.capitalize()
@@ -131,15 +124,19 @@ class DailyImageSheet(UUIDMixin):
 
 class StudentDaySheet(UUIDMixin):
     tag_number = models.CharField(max_length=20,  blank=True,null=True)
-    regular_cloths = models.IntegerField( blank=True,null=True ,default=0)
-    uniforms = models.IntegerField( blank=True,null=True, default=0)
-
+    campus_regular_cloths = models.IntegerField( blank=True,null=True ,default=0)
+    campus_uniforms = models.IntegerField( blank=True,null=True, default=0)
+    ware_house_regular_cloths =models.IntegerField( blank=True,null=True, default=0)
+    ware_house_uniform =models.IntegerField( blank=True,null=True, default=0)
+    delivered = models.BooleanField(default=False,null=True,blank=True)
     def __str__(self) -> str:
         return self.tag_number
 
 class FacultyDaySheet(UUIDMixin):
     tag_number = models.CharField(max_length=20,  blank=True,null=True)
     regular_cloths = models.IntegerField( blank=True,null=True, default=0)
+    ware_house_regular_cloths =models.IntegerField( blank=True,null=True, default=0)
+    delivered = models.BooleanField(default=False,null=True,blank=True)
 
     def __str__(self) -> str:
         return self.tag_number

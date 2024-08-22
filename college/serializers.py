@@ -77,10 +77,11 @@ class CampusSerializer(serializers.ModelSerializer):
 
 
 class FacultySerializer(serializers.ModelSerializer):
-    college_uid = serializers.CharField(write_only=True, required=False)
-    college = serializers.SlugRelatedField(
-        queryset=College.objects.all(),
-        slug_field='uid'
+    campus_uid = serializers.CharField(write_only=True, required=False)
+    campus = serializers.SlugRelatedField(
+        queryset=Campus.objects.all(),
+        slug_field='uid',
+        required=False
     )
 
     class Meta:
@@ -88,24 +89,24 @@ class FacultySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def create(self, validated_data):
-        college_uid = validated_data.pop('college_uid', None)
-        if college_uid:
+        campus_uid = validated_data.pop('campus_uid', None)
+        if campus_uid:
             try:
-                college = College.objects.get(uid=college_uid)
-                validated_data['college'] = college
-            except College.DoesNotExist:
-                raise serializers.ValidationError({'college_uid': 'College with this UID does not exist.'})
+                campus = Campus.objects.get(uid=campus_uid)
+                validated_data['campus'] = campus
+            except Campus.DoesNotExist:
+                raise serializers.ValidationError({'campus_uid': 'Campus with this UID does not exist.'})
         
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
-        college_uid = validated_data.pop('college_uid', None)
-        if college_uid:
+        campus_uid = validated_data.pop('campus_uid', None)
+        if campus_uid:
             try:
-                college = College.objects.get(uid=college_uid)
-                instance.college = college
-            except College.DoesNotExist:
-                raise serializers.ValidationError({'college_uid': 'College with this UID does not exist.'})
+                campus = Campus.objects.get(uid=campus_uid)
+                instance.campus = campus
+            except Campus.DoesNotExist:
+                raise serializers.ValidationError({'campus_uid': 'Campus with this UID does not exist.'})
         
         return super().update(instance, validated_data)
 
@@ -341,75 +342,36 @@ class RemarkByWarehouseSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
 class CollectionSerializer(serializers.ModelSerializer):
-    campus = serializers.SlugRelatedField(slug_field='uid', queryset=Campus.objects.all())
+
     student_day_sheet = StudentDaySheetSerializer(many=True, required=False)
     faculty_day_sheet = FacultyDaySheetSerializer(many=True, required=False)
     student_remark = StudentRemarkSerializer(many=True, required=False)
     warehouse_remark = RemarkByWarehouseSerializer(many=True, required=False)
     daily_image_sheet = DailyImageSheetSerializer(many=True, required=False)
 
-    supervisor = serializers.SlugRelatedField(slug_field='uid', queryset=Employee.objects.all())
-    pickup_driver = serializers.SlugRelatedField(slug_field='uid', queryset=Employee.objects.all())
-    washing_supervisor = serializers.SlugRelatedField(slug_field='uid', queryset=Employee.objects.all())
-    drying_supervisor = serializers.SlugRelatedField(slug_field='uid', queryset=Employee.objects.all())
-    segregation_supervisor = serializers.SlugRelatedField(slug_field='uid', queryset=Employee.objects.all())
-    drop_driver = serializers.SlugRelatedField(slug_field='uid', queryset=Employee.objects.all())
-    college_supervisor = serializers.SlugRelatedField(slug_field='uid', queryset=Employee.objects.all())
-    current_status = serializers.CharField()
+    # # campus_uid = serializers.CharField(write_only=True, required=True)
+    # # supervisor_uid = serializers.CharField(write_only=True, required=False)
+    # pickup_driver_uid = serializers.CharField(write_only=True, required=False)
+    # drying_supervisor_uid = serializers.CharField(write_only=True, required=False)
+    # segregation_supervisor_uid = serializers.CharField(write_only=True, required=False)
+    # drop_driver_uid = serializers.CharField(write_only=True, required=False)
+    # college_supervisor_uid = serializers.CharField(write_only=True, required=False)
+
+    campus = CampusSerializer(read_only = True)
+    supervisor = EmployeeSerializer(read_only =True)
+    pickup_driver = EmployeeSerializer(read_only =True)
+    washing_supervisor = EmployeeSerializer(read_only =True)
+    drying_supervisor = EmployeeSerializer(read_only =True)
+    segregation_supervisor = EmployeeSerializer(read_only =True)
+    college_supervisor = EmployeeSerializer(read_only =True)
+
+   
 
     class Meta:
         model = Collection
         fields = "__all__"
 
-    def create(self, validated_data):
-        # Extract nested data
-        student_day_sheets_data = validated_data.pop('student_day_sheet', [])
-        faculty_day_sheets_data = validated_data.pop('faculty_day_sheet', [])
-        student_remarks_data = validated_data.pop('student_remark', [])
-        warehouse_remarks_data = validated_data.pop('warehouse_remark', [])
-        daily_image_sheet_data = validated_data.pop('daily_image_sheet', [])
+    
         
-        # Get campus and related college to set ETA
-        campus_uid = validated_data.pop("campus")
-        campus_instance = Campus.objects.get(uid=campus_uid.uid)
-        college = campus_instance.college
         
-        # Create the collection and set ETA
-        collection = Collection.objects.create(**validated_data)
-        collection.campus = campus_instance
-        collection.ETA = college.schedule
-        collection.save()
-
-        # Handling image uploads
-        if daily_image_sheet_data:
-            for daily_image in daily_image_sheet_data:
-                image_serializer = DailyImageSheetSerializer(data=daily_image)
-                if image_serializer.is_valid():
-                    daily_image_instance = image_serializer.save()
-                    collection.daily_image_sheet.set(daily_image_instance)
-
-        # Adding Many-to-Many relationships
-        if student_day_sheets_data:
-           
-            for student_day_sheet_uid in student_day_sheets_data:
-                student_day_sheet_instance = StudentDaySheet.objects.get(uid=student_day_sheet_uid)
-                collection.student_day_sheet.set(student_day_sheet_instance)
-
-        if faculty_day_sheets_data:
-            for faculty_day_sheet_uid in faculty_day_sheets_data:
-                faculty_day_sheet_instance = FacultyDaySheet.objects.get(uid=faculty_day_sheet_uid)
-                collection.faculty_day_sheet.set(faculty_day_sheet_instance)
-
-        if student_remarks_data:
-            for student_remark_uid in student_remarks_data:
-                student_remark_instance = StudentRemark.objects.get(uid=student_remark_uid)
-                collection.student_remark.set(student_remark_instance)
-
-        if warehouse_remarks_data:
-            for warehouse_remark_uid in warehouse_remarks_data:
-                warehouse_remark_instance = RemarkByWarehouse.objects.get(uid=warehouse_remark_uid)
-                collection.warehouse_remark.add(warehouse_remark_instance)
-
-        return collection
-
         
