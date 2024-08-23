@@ -19,7 +19,7 @@ from .serializers import (EmployeeSerializer, EmployeeDailyImageSerializer,
                           FoldingTableSerializer,complaintSerializer,CollectionSerializer,
                           DailyImageSheetSerializer,StudentDaySheetSerializer,FacultyDaySheetSerializer,
                           StudentRemarkSerializer,RemarkByWarehouseSerializer,
-                          EmployeeSignInserializer
+                          EmployeeSignInserializer,GetCampusSerializer
                           )
 
 
@@ -581,7 +581,7 @@ class GetCampusDetailsByUIDsViewset(viewsets.GenericViewSet):
 
                 # Serialize the college and associated campuses
                 college_serializer = CollegeSerializer(college)
-                campus_serializer = CampusSerializer(campuses, many=True)
+                campus_serializer = GetCampusSerializer(campuses, many=True)
 
                 college_campus_details.append({
                     "college": college_serializer.data,
@@ -590,7 +590,7 @@ class GetCampusDetailsByUIDsViewset(viewsets.GenericViewSet):
 
             return Response(
                 {
-                    "message": "College and associated campuses fetched successfully.",
+                    "message": "College and associated campuses fetched successfully through the employee uid.",
                     "data": college_campus_details
                 },
                 status=status.HTTP_200_OK

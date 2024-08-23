@@ -15,7 +15,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Employee
-        fields = '__all__'
+        fields = ['uid','id','email','name','mobile','dob','profile_image','employee_type','salary','aadhar_number','daily_images','username','is_superuser','last_login']
         extra_kwargs = {"password": {"write_only": True}}
 
 
@@ -31,7 +31,7 @@ class CollegeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = College
-        fields = ['uid', 'name', 'monthly_payment', 'delivery_time', 'schedule', 'campus_employee']
+        fields = ['id','uid', 'name', 'monthly_payment', 'delivery_time', 'schedule', 'campus_employee']
 
     def create(self, validated_data):
         # Pop the campus_employee data from validated_data
@@ -75,6 +75,13 @@ class CampusSerializer(serializers.ModelSerializer):
         
         return super().update(instance, validated_data)
 
+
+class GetCampusSerializer(serializers.ModelSerializer):
+    
+
+    class Meta:
+        model = Campus
+        fields = '__all__'
 
 class FacultySerializer(serializers.ModelSerializer):
     campus_uid = serializers.CharField(write_only=True, required=False)
