@@ -724,8 +724,8 @@ class FilterCollectionsByStudentViewset(viewsets.GenericViewSet):
         try:
             # Filter collections based on campus UID and tag_number in the related StudentDaySheet model
             collection_instance = Collection.objects.filter(
-                campus__uid=campus_uid,  # Adjusted to filter by campus UID
-                student_day_sheet__tag_number=tag_number  # Filtering through the related StudentDaySheet model
+                campus__uid=campus_uid, 
+                student_day_sheet__tag_number=tag_number 
             )
 
             undelivered_day_sheets_collection = collection_instance.filter(
