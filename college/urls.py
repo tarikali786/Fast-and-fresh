@@ -17,6 +17,10 @@ urlpatterns = [
     path("college/", CollegeViewSet.as_view({"get": "list", "post": "create"}), name="college-list-create"),
     path("college/<uuid:uid>/", CollegeViewSet.as_view({"get": "retrieve",  "patch": "partial_update", "delete": "destroy"}), name="college-detail"),
 
+    # college
+    path("routes/", RoutesViewSet.as_view({"get": "list", "post": "create"}), name="college-list-create"),
+    path("routes/<uuid:uid>/", RoutesViewSet.as_view({"get": "retrieve",  "patch": "partial_update", "delete": "destroy"}), name="college-detail"),
+
     # capus
     path("campus/", CampusViewSet.as_view({"get": "list", "post": "create"}), name="college-list-create"),
     path("campus/<uuid:uid>/", CampusViewSet.as_view({"get": "retrieve",  "patch": "partial_update", "delete": "destroy"}), name="college-detail"),

@@ -3,7 +3,7 @@ from college.models import (Employee, EmployeeDailyImage,College,Campus,Faculty,
                             WashingMashine, WashingMashineCleanImage,DryingMashine,DryingMashineCleanImage,
                             VehicleExpenses,Vehicle,FoldingTable,complaint,
                             DailyImageSheet,StudentDaySheet,FacultyDaySheet,
-                            StudentRemark,RemarkByWarehouse,Collection
+                            StudentRemark,RemarkByWarehouse,Collection,Routes
                             )
 class EmployeeDailyImageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -22,28 +22,84 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
 
 
+class EmployeeSerializerData(serializers.ModelSerializer):
+    class Meta:
+        model = Employee
+        fields = ['id','uid','name','mobile','profile_image']
+
+class RoutesSerializer(serializers.ModelSerializer):
+    employee_uid = serializers.CharField(write_only=True, required=True)
+    employee = EmployeeSerializerData(read_only=True)
+    class Meta:
+        model = Routes
+        fields = '__all__'
+
+    def create(self, validated_data):
+        employee_uid = validated_data.pop("employee_uid")
+        if employee_uid:
+            try:
+                employee_instance = Employee.objects.get(uid=employee_uid)
+                validated_data['employee'] = employee_instance
+            except Employee.DoesNotExist:
+                raise serializers.ValidationError({'Employee': 'Employee with this UID does not exist.'})
+        
+        routes = super().create(validated_data)
+        return routes
 class CollegeSerializer(serializers.ModelSerializer):
     campus_employee = serializers.SlugRelatedField(
         queryset=Employee.objects.all(),
         many=True,
         slug_field='uid'
     )
+    route_uid = serializers.CharField(write_only=True, required=True)
+    routes = RoutesSerializer(read_only=True)
+    
 
     class Meta:
         model = College
-        fields = ['id','uid', 'name', 'monthly_payment', 'delivery_time', 'schedule', 'campus_employee']
+        fields = "__all__"
 
     def create(self, validated_data):
         # Pop the campus_employee data from validated_data
         employees_data = validated_data.pop('campus_employee', [])
+        routes_uid = validated_data.pop("route_uid")
+        if routes_uid:
+            try:
+                routes_instance = Routes.objects.get(uid=routes_uid)
+                validated_data['routes'] = routes_instance
+            except Routes.DoesNotExist:
+                raise serializers.ValidationError({'Routes': 'Routes with this UID does not exist.'})
         college = College.objects.create(**validated_data)
         # Set the campus_employee relationships
         college.campus_employee.set(employees_data) 
         return college
     
+    def update(self, instance, validated_data):
+    # Handle route update
+        routes_uid = validated_data.pop("route_uid", None)
+        if routes_uid:
+            try:
+                routes_instance = Routes.objects.get(uid=routes_uid)
+                instance.routes = routes_instance
+            except Routes.DoesNotExist:
+                raise serializers.ValidationError({'Routes': 'Routes with this UID does not exist.'})
+
+        # Handle campus_employee update
+        if 'campus_employee' in validated_data:
+            employees_data = validated_data.pop('campus_employee')
+            instance.campus_employee.set(employees_data)
+
+        # Update the remaining fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+        return instance
+
+    
 
 
-
+        
 class CampusSerializer(serializers.ModelSerializer):
     college_uid = serializers.CharField(write_only=True, required=True)
     college = CollegeSerializer(read_only=True) 
@@ -356,13 +412,7 @@ class CollectionSerializer(serializers.ModelSerializer):
     warehouse_remark = RemarkByWarehouseSerializer(many=True, required=False)
     daily_image_sheet = DailyImageSheetSerializer(many=True, required=False)
 
-    # # campus_uid = serializers.CharField(write_only=True, required=True)
-    # # supervisor_uid = serializers.CharField(write_only=True, required=False)
-    # pickup_driver_uid = serializers.CharField(write_only=True, required=False)
-    # drying_supervisor_uid = serializers.CharField(write_only=True, required=False)
-    # segregation_supervisor_uid = serializers.CharField(write_only=True, required=False)
-    # drop_driver_uid = serializers.CharField(write_only=True, required=False)
-    # college_supervisor_uid = serializers.CharField(write_only=True, required=False)
+ 
 
     campus = CampusSerializer(read_only = True)
     supervisor = EmployeeSerializer(read_only =True)

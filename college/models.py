@@ -20,6 +20,7 @@ class College(StatusMixin):
     delivery_time = models.TimeField( blank=True,null=True)
     schedule = models.IntegerField( blank=True,null=True)
     campus_employee = models.ManyToManyField("Employee", blank=True)
+    routes = models.ForeignKey('Routes',on_delete=models.CASCADE,null=True,blank=True)
 
     def __str__(self):
         return self.name
@@ -320,3 +321,10 @@ class complaint(UUIDMixin):
 
     def __str__(self) -> str:
         return self.campus
+    
+
+
+
+class Routes(StatusMixin):
+    name = models.CharField(max_length=200,  blank=True,null=True)
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE,null=True,blank=True,related_name="routes_employee")

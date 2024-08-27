@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404
 from college.models import (Employee, College,Campus,Faculty,Student,
                             WashingMashine, DryingMashine,Vehicle, VehicleExpenses,FoldingTable,
                             complaint,Collection,StudentDaySheet,FacultyDaySheet,StudentRemark,
-                            RemarkByWarehouse
+                            RemarkByWarehouse,Routes
                             )
 from .serializers import (EmployeeSerializer, EmployeeDailyImageSerializer, 
                           CollegeSerializer, CampusSerializer,
@@ -19,7 +19,7 @@ from .serializers import (EmployeeSerializer, EmployeeDailyImageSerializer,
                           FoldingTableSerializer,complaintSerializer,CollectionSerializer,
                           DailyImageSheetSerializer,StudentDaySheetSerializer,FacultyDaySheetSerializer,
                           StudentRemarkSerializer,RemarkByWarehouseSerializer,
-                          EmployeeSignInserializer,GetCampusSerializer
+                          EmployeeSignInserializer,GetCampusSerializer,RoutesSerializer
                           )
 
 
@@ -93,6 +93,12 @@ class CollegeViewSet(viewsets.ModelViewSet):
     serializer_class = CollegeSerializer
     lookup_field = 'uid'
 
+
+
+class RoutesViewSet(viewsets.ModelViewSet):
+    queryset = Routes.objects.all()
+    serializer_class = RoutesSerializer
+    lookup_field = 'uid'
 
 # Curd operation for Campus Model
 class CampusViewSet(viewsets.ModelViewSet):
@@ -295,7 +301,6 @@ class CollectionViewSet(viewsets.GenericViewSet):
             supervisor_uid = request.data.get('supervisor_uid')
 
 
-            pickup_driver_uid = request.data.get('pickup_driver_uid',[])
             drying_supervisor_uid = request.data.get('drying_supervisor_uid',[])
             segregation_supervisor_uid = request.data.get('segregation_supervisor_uid',[])
             drop_driver_uid = request.data.get('drop_driver_uid',[])
@@ -306,6 +311,12 @@ class CollectionViewSet(viewsets.GenericViewSet):
                 campus_instance = Campus.objects.get(uid=campus_uid)
                 collection_instance.campus = campus_instance
                 college_instance = College.objects.get(uid=campus_instance.college.uid)
+                routes_instance = Routes.objects.get(uid = college_instance.routes.uid)
+                if routes_instance:
+                    collection_instance.pickup_driver = routes_instance.employee
+
+
+
             except Campus.DoesNotExist:
                 return Response({'error': 'Campus not found'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -315,13 +326,7 @@ class CollectionViewSet(viewsets.GenericViewSet):
             except Employee.DoesNotExist:
                 return Response({'error': 'Supervisor not found'}, status=status.HTTP_404_NOT_FOUND)
                 # Handle optional Employee-related fields
-            if pickup_driver_uid:
-                try:
-                    pickup_driver_instance = Employee.objects.get(uid=pickup_driver_uid)
-                    collection_instance.pickup_driver = pickup_driver_instance
-                except Employee.DoesNotExist:
-                    return Response({'error': 'Pickup driver not found'}, status=status.HTTP_404_NOT_FOUND)
-
+          
             if drying_supervisor_uid:
                 try:
                     drying_supervisor_instance = Employee.objects.get(uid=drying_supervisor_uid)
@@ -352,6 +357,7 @@ class CollectionViewSet(viewsets.GenericViewSet):
 
             # Update the ETA based on the college's schedule
             collection_instance.ETA = college_instance.schedule
+
             collection_instance.save()
             
             # Save nested related objects
@@ -419,22 +425,13 @@ class CollectionViewSet(viewsets.GenericViewSet):
             supervisor_uid = request.data.get('supervisor_uid')
 
             # Optional fields update
-            pickup_driver_uid = request.data.get('pickup_driver_uid')
             drying_supervisor_uid = request.data.get('drying_supervisor_uid')
             segregation_supervisor_uid = request.data.get('segregation_supervisor_uid')
             drop_driver_uid = request.data.get('drop_driver_uid')
             college_supervisor_uid = request.data.get('college_supervisor_uid')
 
             # Update related employees if provided
-            print(pickup_driver_uid)
-            if pickup_driver_uid:
-                try:
-                    pickup_driver_instance = Employee.objects.get(uid=pickup_driver_uid)
-                    collection_instance.pickup_driver = pickup_driver_instance
-                    print("done")
-                except Employee.DoesNotExist:
-                    return Response({'error': 'Pickup driver not found'}, status=status.HTTP_404_NOT_FOUND)
-          
+           
             if campus_uid:
                 try:
                     campus_instance = Campus.objects.get(uid=campus_uid)
