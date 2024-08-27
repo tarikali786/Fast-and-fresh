@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404
 from college.models import (Employee, College,Campus,Faculty,Student,
                             WashingMashine, DryingMashine,Vehicle, VehicleExpenses,FoldingTable,
                             complaint,Collection,StudentDaySheet,FacultyDaySheet,StudentRemark,
-                            RemarkByWarehouse,Routes
+                            RemarkByWarehouse,Routes,DryArea,FilldArea
                             )
 from .serializers import (EmployeeSerializer, EmployeeDailyImageSerializer, 
                           CollegeSerializer, CampusSerializer,
@@ -20,7 +20,7 @@ from .serializers import (EmployeeSerializer, EmployeeDailyImageSerializer,
                           DailyImageSheetSerializer,StudentDaySheetSerializer,FacultyDaySheetSerializer,
                           StudentRemarkSerializer,RemarkByWarehouseSerializer,
                           EmployeeSignInserializer,GetCampusSerializer,RoutesSerializer,
-                          LogisticbagNumberSerializer,FacultybagNumbersSerializer
+                          LogisticbagNumberSerializer,FacultybagNumbersSerializer,DryAreaSerializer
                           )
 
 
@@ -925,3 +925,40 @@ class DeliveredHistoryViewSet(viewsets.GenericViewSet):
                     
         serializer = CollectionSerializer(collection_instances, many=True)
         return Response({"data": serializer.data}, status=status.HTTP_200_OK)
+    
+
+
+class DryAreaViewSet(viewsets.ModelViewSet):
+    queryset = DryArea.objects.all()
+    serializer_class = DryAreaSerializer
+    lookup_field="uid"
+
+
+class DryAreaUpdateViewSet(viewsets.GenericViewSet):
+    def update(self, request, uid):
+        try:
+            dry_area_instance = DryArea.objects.get(uid=uid)
+        except DryArea.DoesNotExist:
+            return Response({"error": "Dry Area not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        campus_uid = request.data.get('campus_uid')
+        filled = request.data.get('filled')
+        
+        # Update fill_area if campus_uid is provided
+        if campus_uid:
+            try:
+                campus_instance = Campus.objects.get(uid=campus_uid)
+            except Campus.DoesNotExist:
+                return Response({"error": "Campus not found"}, status=status.HTTP_404_NOT_FOUND)
+            
+            # Check if FilldArea instance exists for the given campus
+            fill_area_instance, created = FilldArea.objects.update_or_create(
+                campus=campus_instance,
+                defaults={'filled': filled}
+            )
+            
+            # Assign the FilldArea instance to the DryArea instance
+            dry_area_instance.fill_area = fill_area_instance
+
+        dry_area_instance.save()
+        return Response({"message": "Dry Area updated successfully"}, status=status.HTTP_200_OK)

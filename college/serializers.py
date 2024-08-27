@@ -3,7 +3,8 @@ from college.models import (Employee, EmployeeDailyImage,College,Campus,Faculty,
                             WashingMashine, WashingMashineCleanImage,DryingMashine,DryingMashineCleanImage,
                             VehicleExpenses,Vehicle,FoldingTable,complaint,
                             DailyImageSheet,StudentDaySheet,FacultyDaySheet,
-                            StudentRemark,RemarkByWarehouse,Collection,Routes,LogisticBagNumer,FacultybagNumbers
+                            StudentRemark,RemarkByWarehouse,Collection,Routes,LogisticBagNumer,FacultybagNumbers,
+                            FilldArea,DryArea
                             )
 class EmployeeDailyImageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -463,3 +464,32 @@ class CollectionSerializer(serializers.ModelSerializer):
 
 class CollectionTaskSerializer(serializers.Serializer):
     current_status = serializers.CharField(required=True)
+
+
+
+class FilldAreaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FilldArea
+        fields = "__all__"
+
+
+class DryAreaSerializer(serializers.ModelSerializer):
+    fill_area = FilldAreaSerializer( required=False)  # Nested serializer for fill_area
+
+    class Meta:
+        model = DryArea
+        fields = "__all__"
+
+    def create(self, validated_data):
+        fill_area_data = validated_data.pop('fill_area', None)
+        dry_area = DryArea.objects.create(**validated_data)
+        
+        if fill_area_data:
+            campus_id = fill_area_data.get('campus')
+            filled = fill_area_data.get('filled')
+            campus = Campus.objects.get(id=campus_id)  # Assuming campus_id is a primary key, adjust as necessary
+            FilldArea.objects.create(campus=campus, filled=filled)
+            
+        return dry_area
+
+   

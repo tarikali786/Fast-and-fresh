@@ -351,3 +351,18 @@ class complaint(UUIDMixin):
 class Routes(StatusMixin):
     name = models.CharField(max_length=200,  blank=True,null=True)
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE,null=True,blank=True,related_name="routes_employee")
+
+
+
+
+class FilldArea(models.Model):
+    campus = models.ForeignKey(Campus,on_delete=models.CASCADE,null=True,blank=True)
+    filled = models.JSONField(null=True,blank=True)
+
+
+class DryArea(StatusMixin):
+    dry_area_id = models.IntegerField(blank=True)
+    row = models.IntegerField(blank=True)
+    column = models.IntegerField(blank=True)
+    fill_area = models.ForeignKey(FilldArea,on_delete=models.CASCADE,null=True,blank=True)
+
