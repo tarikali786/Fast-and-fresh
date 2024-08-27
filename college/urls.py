@@ -102,7 +102,8 @@ urlpatterns = [
     path("get-latest-collection/",LatestCollectionViewset.as_view({"get":"get"})),
     path("get-non-delivered-student-daysheet-collection/",FilterCollectionsByStudentViewset.as_view({"post":"post"})),
     path("get-driver-collection/<uuid:uid>/",DriverCollectionViewset.as_view({"get":"get"})),
-    path("get-collection-task/",CollectionTaskviewset.as_view({"get":"get"})),
+    path("get-collection-task/<uuid:uid>/",CollectionTaskviewset.as_view({"get":"get"})),
+    path("get-delivered-collection-history/<uuid:uid>/",DeliveredHistoryViewSet.as_view({"get":"get"})),
 
 
 

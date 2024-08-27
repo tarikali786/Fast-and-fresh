@@ -3,7 +3,7 @@ from college.models import (Employee, EmployeeDailyImage,College,Campus,Faculty,
                             WashingMashine, WashingMashineCleanImage,DryingMashine,DryingMashineCleanImage,
                             VehicleExpenses,Vehicle,FoldingTable,complaint,
                             DailyImageSheet,StudentDaySheet,FacultyDaySheet,
-                            StudentRemark,RemarkByWarehouse,Collection,Routes
+                            StudentRemark,RemarkByWarehouse,Collection,Routes,LogisticBagNumer,FacultybagNumbers
                             )
 class EmployeeDailyImageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -365,9 +365,12 @@ class StudentDaySheetSerializer(serializers.ModelSerializer):
         fields =  "__all__"
 
 class FacultyDaySheetSerializer(serializers.ModelSerializer):
+    faculty = serializers.SlugRelatedField(slug_field='uid', queryset=Faculty.objects.all())
+
     class Meta:
         model = FacultyDaySheet
         fields = "__all__"
+
 
 class StudentRemarkSerializer(serializers.ModelSerializer):
     class Meta:
@@ -407,6 +410,20 @@ class RemarkByWarehouseSerializer(serializers.ModelSerializer):
         
         return super().update(instance, validated_data)
 
+
+class LogisticbagNumberSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LogisticBagNumer
+        fields = "__all__"
+
+class FacultybagNumbersSerializer(serializers.ModelSerializer):
+    faculty = serializers.SlugRelatedField(slug_field='uid', queryset=Faculty.objects.all())
+
+    class Meta:
+        model = FacultybagNumbers
+        fields = "__all__"
+
+
 class CollectionSerializer(serializers.ModelSerializer):
 
     student_day_sheet = StudentDaySheetSerializer(many=True, required=False)
@@ -414,6 +431,16 @@ class CollectionSerializer(serializers.ModelSerializer):
     student_remark = StudentRemarkSerializer(many=True, required=False)
     warehouse_remark = RemarkByWarehouseSerializer(many=True, required=False)
     daily_image_sheet = DailyImageSheetSerializer(many=True, required=False)
+    campus_pickup_bag_numbers = LogisticbagNumberSerializer(many=True, required=False)
+    campus_drop_bag_numbers = LogisticbagNumberSerializer(many=True, required=False)
+    warehouse_pickup_bag_numbers = LogisticbagNumberSerializer(many=True, required=False)
+    warehouse_drop_bag_numbers = LogisticbagNumberSerializer(many=True, required=False)
+
+    campus_pickup_faculty_bag_number = FacultybagNumbersSerializer(many=True, required=False)
+    campus_drop_faculty_bag_number = FacultybagNumbersSerializer(many=True, required=False)
+    warehouse_pickup_faculty_bag_number = FacultybagNumbersSerializer(many=True, required=False)
+    warehouse_drop_faculty_bag_number = FacultybagNumbersSerializer(many=True, required=False)
+
 
  
 
@@ -432,7 +459,6 @@ class CollectionSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     
-        
         
 
 class CollectionTaskSerializer(serializers.Serializer):

@@ -134,7 +134,8 @@ class StudentDaySheet(UUIDMixin):
         return self.tag_number
 
 class FacultyDaySheet(UUIDMixin):
-    tag_number = models.CharField(max_length=20,  blank=True,null=True)
+    # changes
+    faculty = models.ForeignKey(Faculty,on_delete=models.CASCADE,null=True,blank=True)
     regular_cloths = models.IntegerField( blank=True,null=True, default=0)
     ware_house_regular_cloths =models.IntegerField( blank=True,null=True, default=0)
     delivered = models.BooleanField(default=False,null=True,blank=True)
@@ -157,11 +158,18 @@ class RemarkByWarehouse(UUIDMixin):
     def __str__(self) -> str:
         return self.tag_number
 
+class LogisticBagNumer(models.Model):
+    bag_number = models.IntegerField(  blank=True,null=True)
+
+class FacultybagNumbers(models.Model):
+    number_of_bag = models.IntegerField(null=True,blank=True)
+    faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE,null=True,blank=True)
+    photo = models.ImageField(upload_to=upload_location,  blank=True,null=True)
 
 class Collection(StatusMixin):
     CollectionStatus =[
         ("READY_TO_PICK","READY_TO_PICK"),
-        ("IN_TRANSIT","IN_TRANSIT"),
+        ("INTRANSIT_FROM_cAMPUS","INTRANSIT_FROM_cAMPUS"),
         ("DELIVERED_TO_WAREHOUSE","DELIVERED_TO_WAREHOUSE"),
         ("WASHING","WASHING"),
         ("WASHING_DONE","WASHING_DONE"),
@@ -170,9 +178,11 @@ class Collection(StatusMixin):
         ("IN_SEGREGATION","IN_SEGREGATION"),
         ("SEGREGATION_DONE","SEGREGATION_DONE"),
         ("READY_FOR_DELIVERY","READY_FOR_DELIVERY"),
+        ("INTRANSIT_FROM_WAREHOUSE","INTRANSIT_FROM_WAREHOUSE"),
         ("DELIVERED_TO_CAMPUS","DELIVERED_TO_CAMPUS"),
         ("DELIVERED_TO_STUDENT","DELIVERED_TO_STUDENT"),
     ]
+#    changes
     campus = models.ForeignKey(Campus, on_delete=models.CASCADE,  blank=True,null=True)
     student_day_sheet = models.ManyToManyField(StudentDaySheet, blank=True)
     faculty_day_sheet = models.ManyToManyField(FacultyDaySheet, blank=True)
@@ -181,13 +191,10 @@ class Collection(StatusMixin):
     supervisor = models.ForeignKey(Employee,  blank=True,null=True, on_delete=models.CASCADE, related_name='collections')
     daily_image_sheet = models.ManyToManyField(DailyImageSheet, blank=True)
     pickup_driver = models.ForeignKey(Employee,  blank=True,null=True ,on_delete=models.CASCADE, related_name='pickup_collections')
-    pickup_collection_image = models.ImageField(upload_to=upload_location,  blank=True,null=True)
-    collection_in_truck_image = models.ImageField(upload_to=upload_location,  blank=True,null=True)
-    collection_in_warehouse_image = models.ImageField(upload_to=upload_location,  blank=True,null=True)
-    faculty_cloths_in_campus_image = models.ImageField(upload_to=upload_location,  blank=True,null=True)
-    faculty_cloths_in_warehouse_image = models.ImageField(upload_to=upload_location,  blank=True,null=True)
-    collection_while_dropping_in_truck = models.ImageField(upload_to=upload_location,  blank=True,null=True)
-    drop_in_campus_image = models.ImageField(upload_to=upload_location,  blank=True,null=True)
+    campus_pickup_collection_image = models.ImageField(upload_to=upload_location,  blank=True,null=True)
+    campus_drop_collection_image = models.ImageField(upload_to=upload_location,  blank=True,null=True)
+    warehouse_pickup_image = models.ImageField(upload_to=upload_location,  blank=True,null=True)
+    warehouse_drop_image = models.ImageField(upload_to=upload_location,  blank=True,null=True)
     washing_supervisor = models.ForeignKey(Employee,  blank=True,null=True ,on_delete=models.CASCADE, related_name='washing_supervisions')
     drying_supervisor = models.ForeignKey(Employee,  blank=True,null=True, on_delete=models.CASCADE, related_name='drying_supervisions')
     segregation_supervisor = models.ForeignKey(Employee,  blank=True,null=True, on_delete=models.CASCADE, related_name='segregation_supervisions')
@@ -198,6 +205,21 @@ class Collection(StatusMixin):
     student_remark = models.ManyToManyField(StudentRemark,blank=True)
     warehouse_remark = models.ManyToManyField(RemarkByWarehouse,blank=True)
 
+    # new added
+    campus_pickup_bag_numbers = models.ManyToManyField(LogisticBagNumer,blank=True,  related_name='campus_pickup_collections'    )
+    campus_drop_bag_numbers = models.ManyToManyField(LogisticBagNumer, blank=True, related_name='campus_drop_collections'    )
+    warehouse_pickup_bag_numbers = models.ManyToManyField(LogisticBagNumer, blank=True,related_name='warehouse_pickup_collections'    )
+    warehouse_drop_bag_numbers = models.ManyToManyField(LogisticBagNumer, blank=True, related_name='warehouse_drop_collections')
+    campus_pickup_faculty_bag_number = models.ManyToManyField(FacultybagNumbers, blank=True,related_name='campus_pickup_faculty_collections' )
+    campus_drop_faculty_bag_number = models.ManyToManyField(FacultybagNumbers,blank=True,related_name='campus_drop_faculty_collections')
+    warehouse_pickup_faculty_bag_number = models.ManyToManyField(FacultybagNumbers,blank=True,related_name='warehouse_pickup_faculty_collections'    )
+    warehouse_drop_faculty_bag_number = models.ManyToManyField(FacultybagNumbers,blank=True,related_name='warehouse_drop_faculty_collections')
+
+    
+
+    
+    
+    
 
    
 

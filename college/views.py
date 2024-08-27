@@ -19,7 +19,8 @@ from .serializers import (EmployeeSerializer, EmployeeDailyImageSerializer,
                           FoldingTableSerializer,complaintSerializer,CollectionSerializer,
                           DailyImageSheetSerializer,StudentDaySheetSerializer,FacultyDaySheetSerializer,
                           StudentRemarkSerializer,RemarkByWarehouseSerializer,
-                          EmployeeSignInserializer,GetCampusSerializer,RoutesSerializer,CollectionTaskSerializer
+                          EmployeeSignInserializer,GetCampusSerializer,RoutesSerializer,
+                          LogisticbagNumberSerializer,FacultybagNumbersSerializer
                           )
 
 
@@ -375,6 +376,9 @@ class CollectionViewSet(viewsets.GenericViewSet):
                 if faculty_day_sheet_serializer.is_valid():
                     faculty_day_sheet_instance = faculty_day_sheet_serializer.save()
                     collection_instance.faculty_day_sheet.add(faculty_day_sheet_instance)
+                else:
+                    return Response(faculty_day_sheet_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
             student_remark_list  = json.loads(request.data.get('student_remark', '[]'))
@@ -392,6 +396,8 @@ class CollectionViewSet(viewsets.GenericViewSet):
                     if warehouse_remark_serializer.is_valid():
                         warehouse_remark_instance = warehouse_remark_serializer.save()
                         collection_instance.warehouse.add(warehouse_remark_instance)
+
+            
             
             # Handle the uploaded daily images from request.FILES
             daily_image_sheet_file = request.FILES.getlist('daily_image_sheet')
@@ -522,6 +528,81 @@ class CollectionViewSet(viewsets.GenericViewSet):
                     if image_serializer.is_valid():
                         daily_image_instance = image_serializer.save()
                         collection_instance.daily_image_sheet.add(daily_image_instance)
+
+            
+            # Handle campus_pickup_bag_numbers update
+            if 'campus_pickup_bag_numbers' in request.data:
+                campus_pickup_bag_numbers_list =  json.loads(request.data.get('campus_pickup_bag_numbers', []))
+                for campus_pickup_bag in campus_pickup_bag_numbers_list:
+                    campus_pickup_bag_number_serializer = LogisticbagNumberSerializer(data=campus_pickup_bag)
+                    if campus_pickup_bag_number_serializer.is_valid():
+                        campus_pickup_bag_number_instance = campus_pickup_bag_number_serializer.save()
+                        collection_instance.campus_pickup_bag_numbers.add(campus_pickup_bag_number_instance)
+
+            if 'warehouse_pickup_bag_numbers' in request.data:
+                warehouse_pickup_bag_numbers_list =  json.loads(request.data.get('warehouse_pickup_bag_numbers', []))
+                for warehouse_pickup_bag in warehouse_pickup_bag_numbers_list:
+                    warehouse_pickup_bag_number_serializer = LogisticbagNumberSerializer(data=warehouse_pickup_bag)
+                    if warehouse_pickup_bag_number_serializer.is_valid():
+                        warehouse_pickup_bag_number_instance =warehouse_pickup_bag_number_serializer.save()
+                        collection_instance.warehouse_pickup_bag_numbers.add(warehouse_pickup_bag_number_instance)
+
+
+            if 'campus_drop_bag_numbers' in request.data:
+                campus_drop_bag_numbers_list =  json.loads(request.data.get('campus_drop_bag_numbers', []))
+                for campus_drop_bag in campus_drop_bag_numbers_list:
+                    campus_drop_bag_number_serializer = LogisticbagNumberSerializer(data=campus_drop_bag)
+                    if campus_drop_bag_number_serializer.is_valid():
+                        campus_drop_bag_number_instance = campus_drop_bag_number_serializer.save()
+                        collection_instance.campus_drop_bag_numbers.add(campus_drop_bag_number_instance)
+
+            if 'warehouse_drop_bag_numbers' in request.data:
+                warehouse_drop_bag_numbers_list =  json.loads(request.data.get('warehouse_drop_bag_numbers', []))
+                for warehouse_drop_bag in warehouse_drop_bag_numbers_list:
+                    warehouse_drop_bag_number_serializer = LogisticbagNumberSerializer(data=warehouse_drop_bag)
+                    if warehouse_drop_bag_number_serializer.is_valid():
+                        warehouse_drop_bag_number_instance = warehouse_drop_bag_number_serializer.save()
+                        collection_instance.warehouse_drop_bag_numbers.add(warehouse_drop_bag_number_instance)
+
+            
+        
+            
+            # Handle campus_pickup_faculty_bag_number update
+            if 'campus_pickup_faculty_bag_number' in request.data:
+                campus_pickup_faculty_bag_numbers_list =  json.loads(request.data.get('campus_pickup_faculty_bag_number', []))
+                for campus_pickup_faculty_bag in campus_pickup_faculty_bag_numbers_list:
+                    campus_pickup_faculty_bag_number_serializer = FacultybagNumbersSerializer(data=campus_pickup_faculty_bag)
+                    if campus_pickup_faculty_bag_number_serializer.is_valid():
+                        campus_pickup_faculty_bag_number_instance = campus_pickup_faculty_bag_number_serializer.save()
+                        collection_instance.campus_pickup_faculty_bag_number.add(campus_pickup_faculty_bag_number_instance)
+
+            if 'campus_drop_faculty_bag_number' in request.data:
+                warehouse_pickup_faculty_bag_numbers_list =  json.loads(request.data.get('campus_drop_faculty_bag_number', []))
+                for warehouse_pickup_faculty_bag in warehouse_pickup_faculty_bag_numbers_list:
+                    warehouse_pickup_faculty_bag_number_serializer = FacultybagNumbersSerializer(data=warehouse_pickup_faculty_bag)
+                    if warehouse_pickup_faculty_bag_number_serializer.is_valid():
+                        warehouse_pickup_faculty_bag_number_instance =warehouse_pickup_faculty_bag_number_serializer.save()
+                        collection_instance.campus_drop_faculty_bag_number.add(warehouse_pickup_faculty_bag_number_instance)
+
+
+            if 'warehouse_pickup_faculty_bag_number' in request.data:
+                campus_drop_faculty_bag_numbers_list =  json.loads(request.data.get('warehouse_pickup_faculty_bag_number', []))
+                for campus_drop_faculty_bag in campus_drop_faculty_bag_numbers_list:
+                    campus_drop_faculty_bag_number_serializer = FacultybagNumbersSerializer(data=campus_drop_faculty_bag)
+                    if campus_drop_faculty_bag_number_serializer.is_valid():
+                        campus_drop_faculty_bag_number_instance = campus_drop_faculty_bag_number_serializer.save()
+                        collection_instance.warehouse_pickup_faculty_bag_number.add(campus_drop_faculty_bag_number_instance)
+
+            if 'warehouse_drop_faculty_bag_number' in request.data:
+                warehouse_drop_faculty_bag_numbers_list =  json.loads(request.data.get('warehouse_drop_faculty_bag_number', []))
+                for warehouse_drop_faculty_bag in warehouse_drop_faculty_bag_numbers_list:
+                    warehouse_drop_faculty_bag_number_serializer = FacultybagNumbersSerializer(data=warehouse_drop_faculty_bag)
+                    if warehouse_drop_faculty_bag_number_serializer.is_valid():
+                        warehouse_drop_faculty_bag_number_instance = warehouse_drop_faculty_bag_number_serializer.save()
+                        collection_instance.warehouse_drop_faculty_bag_number.add(warehouse_drop_faculty_bag_number_instance)
+
+
+
 
             collection_instance.save()
 
@@ -780,7 +861,8 @@ class DriverCollectionViewset(viewsets.GenericViewSet):
                         # Filter collections based on the statuses: READY_TO_PICK, IN_TRANSIT, READY_FOR_DELIVERY
                         filtered_collection = collection_instances.filter(
                             Q(current_status="READY_TO_PICK") |
-                            Q(current_status="IN_TRANSIT") |
+                            Q(current_status="INTRANSIT_FROM_cAMPUS") |
+                            Q(current_status="INTRANSIT_FROM_WAREHOUSE") |
                             Q(current_status="READY_FOR_DELIVERY")
                         )
 
@@ -801,25 +883,45 @@ class DriverCollectionViewset(viewsets.GenericViewSet):
 
 class CollectionTaskviewset(viewsets.GenericViewSet):
     
-    def get(self, request):
-        serializer = CollectionTaskSerializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            request_status = serializer.validated_data.get("current_status")
-
-            collection_instances = Collection.objects.none()
-
-            # Filter collections based on the request status
-            if request_status == "DELIVERED_TO_WAREHOUSE":
-                collection_instances = Collection.objects.filter(current_status="WASHING")
-            elif request_status == "WASHING_DONE":
-                collection_instances = Collection.objects.filter(current_status="DRYING")
-            elif request_status == "DRYING_DONE":
-                collection_instances = Collection.objects.filter(current_status="IN_SEGREGATION")
-            else:
-                return Response({"error":"Invalid status"},status=status.HTTP_400_BAD_REQUEST)  
-            
-
-            collection_serializer = CollectionSerializer(collection_instances, many=True)
-            return Response({"data": collection_serializer.data}, status=status.HTTP_200_OK)
+    def get(self, request,uid):
+        employee_instance = Employee.objects.get(uid=uid)
+        if employee_instance.employee_type == "Washing":
+            collection_instances = Collection.objects.filter(current_status="DELIVERED_TO_WAREHOUSE")
         
-        return Response({"error": "Invalid data"}, status=status.HTTP_400_BAD_REQUEST)
+        elif employee_instance.employee_type == "Drying":
+            collection_instances = Collection.objects.filter(current_status="WASHING_DONE")
+        
+        elif employee_instance.employee_type == "Segregation":
+            collection_instances = Collection.objects.filter(current_status="DRYING_DONE")
+            
+        else:
+            return Response ({"error":"Employee UID is not Valid"})
+        
+        collection_serializer = CollectionSerializer(collection_instances, many=True)
+        return Response({"data": collection_serializer.data}, status=status.HTTP_200_OK)
+        
+
+
+class DeliveredHistoryViewSet(viewsets.GenericViewSet):
+    
+    def get(self, request, uid):
+        try:
+            employee_instance = Employee.objects.get(uid=uid)
+        except Employee.DoesNotExist:
+            return Response({"error": "Employee not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if employee_instance.employee_type == "Driver":
+            collection_instances = Collection.objects.filter(drop_driver=employee_instance, current_status="DELIVERED_TO_CAMPUS")
+        
+        elif employee_instance.employee_type == "Washing":
+            collection_instances = Collection.objects.filter(drop_driver=employee_instance, current_status="DELIVERED_TO_CAMPUS")
+
+        elif employee_instance.employee_type == "Drying":
+            collection_instances = Collection.objects.filter(drop_driver=employee_instance, current_status="DELIVERED_TO_CAMPUS")
+                 
+
+        elif employee_instance.employee_type == "Segregation":
+            collection_instances = Collection.objects.filter(drop_driver=employee_instance, current_status="DELIVERED_TO_CAMPUS")
+                    
+        serializer = CollectionSerializer(collection_instances, many=True)
+        return Response({"data": serializer.data}, status=status.HTTP_200_OK)
