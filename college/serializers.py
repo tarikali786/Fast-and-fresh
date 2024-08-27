@@ -29,7 +29,7 @@ class EmployeeSerializerData(serializers.ModelSerializer):
 
 class RoutesSerializer(serializers.ModelSerializer):
     employee_uid = serializers.CharField(write_only=True, required=True)
-    employee = EmployeeSerializerData(read_only=True)
+    # employee = EmployeeSerializerData(read_only=True)
     class Meta:
         model = Routes
         fields = '__all__'
@@ -39,7 +39,10 @@ class RoutesSerializer(serializers.ModelSerializer):
         if employee_uid:
             try:
                 employee_instance = Employee.objects.get(uid=employee_uid)
-                validated_data['employee'] = employee_instance
+                if employee_instance.employee_type ==  "Driver":
+                    validated_data['employee'] = employee_instance
+                else:
+                    raise serializers.ValidationError({'Error': 'employee type is not a driver'})                    
             except Employee.DoesNotExist:
                 raise serializers.ValidationError({'Employee': 'Employee with this UID does not exist.'})
         
@@ -431,4 +434,6 @@ class CollectionSerializer(serializers.ModelSerializer):
     
         
         
-        
+
+class CollectionTaskSerializer(serializers.Serializer):
+    current_status = serializers.CharField(required=True)

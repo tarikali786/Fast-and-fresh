@@ -101,6 +101,9 @@ urlpatterns = [
     path("get-studnet-details/",GetStudentDetailsViewset.as_view({"post":"post"})),
     path("get-latest-collection/",LatestCollectionViewset.as_view({"get":"get"})),
     path("get-non-delivered-student-daysheet-collection/",FilterCollectionsByStudentViewset.as_view({"post":"post"})),
+    path("get-driver-collection/<uuid:uid>/",DriverCollectionViewset.as_view({"get":"get"})),
+    path("get-collection-task/",CollectionTaskviewset.as_view({"get":"get"})),
+
 
 
 ]

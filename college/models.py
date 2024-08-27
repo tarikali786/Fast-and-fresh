@@ -162,6 +162,7 @@ class Collection(StatusMixin):
     CollectionStatus =[
         ("READY_TO_PICK","READY_TO_PICK"),
         ("IN_TRANSIT","IN_TRANSIT"),
+        ("DELIVERED_TO_WAREHOUSE","DELIVERED_TO_WAREHOUSE"),
         ("WASHING","WASHING"),
         ("WASHING_DONE","WASHING_DONE"),
         ("DRYING","DRYING"),

@@ -19,7 +19,7 @@ from .serializers import (EmployeeSerializer, EmployeeDailyImageSerializer,
                           FoldingTableSerializer,complaintSerializer,CollectionSerializer,
                           DailyImageSheetSerializer,StudentDaySheetSerializer,FacultyDaySheetSerializer,
                           StudentRemarkSerializer,RemarkByWarehouseSerializer,
-                          EmployeeSignInserializer,GetCampusSerializer,RoutesSerializer
+                          EmployeeSignInserializer,GetCampusSerializer,RoutesSerializer,CollectionTaskSerializer
                           )
 
 
@@ -751,3 +751,75 @@ class FilterCollectionsByStudentViewset(viewsets.GenericViewSet):
                 {"error": "An error occurred while filtering collections.", "details": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+class DriverCollectionViewset(viewsets.GenericViewSet):
+    def get(self, request, uid):
+        try:
+            employee_instance = Employee.objects.get(uid=uid)
+            if employee_instance.employee_type != "Driver":
+                return Response({"error": "Employee is not a driver."}, status=status.HTTP_400_BAD_REQUEST)
+            # Get all Routes instances associated with the employee UID
+            routes_instances = Routes.objects.filter(employee__uid=uid)
+
+            if not routes_instances.exists():
+                return Response({"error": "No routes found for the given employee UID."}, status=status.HTTP_404_NOT_FOUND)
+
+            # Initialize an empty list to store all filtered collections
+            filtered_collections = []
+
+            # Iterate through each routes instance
+            for routes_instance in routes_instances:
+                # Get the list of colleges associated with each routes instance
+                college_instances = College.objects.filter(routes=routes_instance)
+                
+                for college in college_instances:
+                    campus_instances = Campus.objects.filter(college=college)
+                    for campus in campus_instances:
+                        collection_instances = Collection.objects.filter(campus=campus)
+
+                        # Filter collections based on the statuses: READY_TO_PICK, IN_TRANSIT, READY_FOR_DELIVERY
+                        filtered_collection = collection_instances.filter(
+                            Q(current_status="READY_TO_PICK") |
+                            Q(current_status="IN_TRANSIT") |
+                            Q(current_status="READY_FOR_DELIVERY")
+                        )
+
+                        # Add the filtered collections to the list
+                        filtered_collections.extend(filtered_collection)
+
+            # Serialize the filtered collections
+            serializer_collection = CollectionSerializer(filtered_collections, many=True)
+
+            # Return the serialized data
+            return Response({'data': serializer_collection.data}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"error": "An error occurred while retrieving collections.", "details": str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+
+class CollectionTaskviewset(viewsets.GenericViewSet):
+    
+    def get(self, request):
+        serializer = CollectionTaskSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            request_status = serializer.validated_data.get("current_status")
+
+            collection_instances = Collection.objects.none()
+
+            # Filter collections based on the request status
+            if request_status == "DELIVERED_TO_WAREHOUSE":
+                collection_instances = Collection.objects.filter(current_status="WASHING")
+            elif request_status == "WASHING_DONE":
+                collection_instances = Collection.objects.filter(current_status="DRYING")
+            elif request_status == "DRYING_DONE":
+                collection_instances = Collection.objects.filter(current_status="IN_SEGREGATION")
+            else:
+                return Response({"error":"Invalid status"},status=status.HTTP_400_BAD_REQUEST)  
+            
+
+            collection_serializer = CollectionSerializer(collection_instances, many=True)
+            return Response({"data": collection_serializer.data}, status=status.HTTP_200_OK)
+        
+        return Response({"error": "Invalid data"}, status=status.HTTP_400_BAD_REQUEST)
