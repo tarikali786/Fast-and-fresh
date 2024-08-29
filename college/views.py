@@ -888,13 +888,13 @@ class CollectionTaskviewset(viewsets.GenericViewSet):
     def get(self, request,uid):
         employee_instance = Employee.objects.get(uid=uid)
         if employee_instance.employee_type == "Washing":
-            collection_instances = Collection.objects.filter(current_status="DELIVERED_TO_WAREHOUSE")
+            collection_instances = Collection.objects.filter(Q(current_status="DELIVERED_TO_WAREHOUSE") | Q(current_status="WASHING") )
         
         elif employee_instance.employee_type == "Drying":
-            collection_instances = Collection.objects.filter(current_status="WASHING_DONE")
+            collection_instances = Collection.objects.filter(Q(current_status="WASHING_DONE") | Q(current_status="Drying"))
         
         elif employee_instance.employee_type == "Segregation":
-            collection_instances = Collection.objects.filter(current_status="DRYING_DONE")
+            collection_instances = Collection.objects.filter(Q(current_status="DRYING_DONE") |Q(current_status="IN_SEGREGATION"))
             
         else:
             return Response ({"error":"Employee UID is not Valid"})
