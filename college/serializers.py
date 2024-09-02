@@ -493,3 +493,63 @@ class DryAreaSerializer(serializers.ModelSerializer):
         return dry_area
 
    
+
+
+
+class CollectionResponseSerializer(serializers.ModelSerializer):
+
+    student_day_sheet = StudentDaySheetSerializer(many=True, required=False)
+    faculty_day_sheet = FacultyDaySheetSerializer(many=True, required=False)
+    student_remark = StudentRemarkSerializer(many=True, required=False)
+    warehouse_remark = RemarkByWarehouseSerializer(many=True, required=False)
+    campus_pickup_bag_numbers = LogisticbagNumberSerializer(many=True, required=False)
+    campus_drop_bag_numbers = LogisticbagNumberSerializer(many=True, required=False)
+    warehouse_pickup_bag_numbers = LogisticbagNumberSerializer(many=True, required=False)
+    warehouse_drop_bag_numbers = LogisticbagNumberSerializer(many=True, required=False)
+
+    campus_pickup_faculty_bag_number = FacultybagNumbersSerializer(many=True, required=False)
+    campus_drop_faculty_bag_number = FacultybagNumbersSerializer(many=True, required=False)
+    warehouse_pickup_faculty_bag_number = FacultybagNumbersSerializer(many=True, required=False)
+    warehouse_drop_faculty_bag_number = FacultybagNumbersSerializer(many=True, required=False)
+
+
+ 
+
+    campus = CampusSerializer(read_only = True)
+    supervisor = EmployeeSerializer(read_only =True)
+    pickup_driver = EmployeeSerializer(read_only =True)
+    washing_supervisor = EmployeeSerializer(read_only =True)
+    drying_supervisor = EmployeeSerializer(read_only =True)
+    segregation_supervisor = EmployeeSerializer(read_only =True)
+
+   
+
+    class Meta:
+        model = Collection
+        fields = [
+            'uid',
+            'id',  # or list all fields you want to include
+            'campus',
+            'student_day_sheet',
+            'faculty_day_sheet',
+            'total_cloths',
+            'total_uniforms',
+            'supervisor',
+            'pickup_driver',
+            'drop_driver',
+            'washing_supervisor',
+            'drying_supervisor',
+            'segregation_supervisor',
+            'current_status',
+            'ETA',
+            'student_remark',
+            'warehouse_remark',
+            'campus_pickup_bag_numbers',
+            'campus_drop_bag_numbers',
+            'warehouse_pickup_bag_numbers',
+            'warehouse_drop_bag_numbers',
+            'campus_pickup_faculty_bag_number',
+            'campus_drop_faculty_bag_number',
+            'warehouse_pickup_faculty_bag_number',
+            'warehouse_drop_faculty_bag_number',
+        ]

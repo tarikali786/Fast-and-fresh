@@ -108,6 +108,8 @@ urlpatterns = [
     path("get-driver-collection/<uuid:uid>/",DriverCollectionViewset.as_view({"get":"get"})),
     path("get-collection-task/<uuid:uid>/",CollectionTaskviewset.as_view({"get":"get"})),
     path("get-delivered-collection-history/<uuid:uid>/",DeliveredHistoryViewSet.as_view({"get":"get"})),
+    path("get-employee-active-collection/<uuid:uid>/",EmployeeActiveTaskViewset.as_view({"get":"get"})),
+    path("get-employee-Inactive-collection/<uuid:uid>/",EmployeeInActiveTaskViewset.as_view({"get":"get"})),
 
 
 

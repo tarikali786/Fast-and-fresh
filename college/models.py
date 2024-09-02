@@ -84,7 +84,7 @@ class CustomUserManager(BaseUserManager):
 class Employee(AbstractUser):
     EMPLOYEE_TYPE_CHOICES = [
         ("Admin", "Admin"),
-        ("Campus_Employee", "Campus Employee"),
+        ("Campus_Employee", "Campus_Employee"),
         ("Driver", "Driver"),
         ("Washing", "Washing"),
         ("Drying", "Drying"),

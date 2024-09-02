@@ -20,7 +20,8 @@ from .serializers import (EmployeeSerializer, EmployeeDailyImageSerializer,
                           DailyImageSheetSerializer,StudentDaySheetSerializer,FacultyDaySheetSerializer,
                           StudentRemarkSerializer,RemarkByWarehouseSerializer,
                           EmployeeSignInserializer,GetCampusSerializer,RoutesSerializer,
-                          LogisticbagNumberSerializer,FacultybagNumbersSerializer,DryAreaSerializer
+                          LogisticbagNumberSerializer,FacultybagNumbersSerializer,DryAreaSerializer,
+                          CollectionResponseSerializer
                           )
 
 
@@ -409,7 +410,7 @@ class CollectionViewSet(viewsets.GenericViewSet):
             
             collection_instance.save()
             
-            collection_serializer = CollectionSerializer(collection_instance)
+            collection_serializer = CollectionResponseSerializer(collection_instance)
             return Response({"message": "Collection created successfully", "data": collection_serializer.data}, status=status.HTTP_201_CREATED)
         else:
             return Response({'error': 'Invalid Request'}, status=status.HTTP_400_BAD_REQUEST)
@@ -606,7 +607,7 @@ class CollectionViewSet(viewsets.GenericViewSet):
 
             collection_instance.save()
 
-            collection_serializer = CollectionSerializer(collection_instance)
+            collection_serializer = CollectionResponseSerializer(collection_instance)
             return Response({"message": "Collection updated successfully", "data": collection_serializer.data}, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Invalid Request'}, status=status.HTTP_400_BAD_REQUEST)
@@ -624,7 +625,7 @@ class CollectionViewSet(viewsets.GenericViewSet):
     def retrieve(self, request, uid=None):
         try:
             collection_instance = Collection.objects.get(uid=uid)
-            collection_serializer = CollectionSerializer(collection_instance)
+            collection_serializer = CollectionResponseSerializer(collection_instance)
             return Response({"message": "Collection retrieved successfully", "data": collection_serializer.data}, status=status.HTTP_200_OK)
         except Collection.DoesNotExist:
             return Response({'error': 'Collection not found'}, status=status.HTTP_404_NOT_FOUND)
@@ -633,7 +634,7 @@ class CollectionViewSet(viewsets.GenericViewSet):
 
     def list(self, request):
         collections = Collection.objects.all()
-        collection_serializer = CollectionSerializer(collections, many=True)
+        collection_serializer = CollectionResponseSerializer(collections, many=True)
         return Response({"message": "Collections retrieved successfully", "data": collection_serializer.data}, status=status.HTTP_200_OK)
 
 
@@ -714,7 +715,7 @@ class GetEmployeeCollectionsViewset(viewsets.GenericViewSet):
                 )
 
             # Serialize the collections
-            collection_serializer = CollectionSerializer(collections, many=True)
+            collection_serializer = CollectionResponseSerializer(collections, many=True)
 
             return Response(
                 {"message": "Employee Collections", "data": collection_serializer.data},
@@ -814,7 +815,7 @@ class FilterCollectionsByStudentViewset(viewsets.GenericViewSet):
 
             if undelivered_day_sheets_collection.exists():
                 # Serialize collections
-                collection_serializer = CollectionSerializer(undelivered_day_sheets_collection, many=True)
+                collection_serializer = CollectionResponseSerializer(undelivered_day_sheets_collection, many=True)
                 
                 return Response(
                     {
@@ -872,7 +873,7 @@ class DriverCollectionViewset(viewsets.GenericViewSet):
                         filtered_collections.extend(filtered_collection)
 
             # Serialize the filtered collections
-            serializer_collection = CollectionSerializer(filtered_collections, many=True)
+            serializer_collection = CollectionResponseSerializer(filtered_collections, many=True)
 
             # Return the serialized data
             return Response({'data': serializer_collection.data}, status=status.HTTP_200_OK)
@@ -899,7 +900,7 @@ class CollectionTaskviewset(viewsets.GenericViewSet):
         else:
             return Response ({"error":"Employee UID is not Valid"})
         
-        collection_serializer = CollectionSerializer(collection_instances, many=True)
+        collection_serializer = CollectionResponseSerializer(collection_instances, many=True)
         return Response({"data": collection_serializer.data}, status=status.HTTP_200_OK)
         
 
@@ -925,7 +926,7 @@ class DeliveredHistoryViewSet(viewsets.GenericViewSet):
         elif employee_instance.employee_type == "Segregation":
             collection_instances = Collection.objects.filter(drop_driver=employee_instance, current_status="DELIVERED_TO_CAMPUS")
                     
-        serializer = CollectionSerializer(collection_instances, many=True)
+        serializer = CollectionResponseSerializer(collection_instances, many=True)
         return Response({"data": serializer.data}, status=status.HTTP_200_OK)
     
 
@@ -964,3 +965,132 @@ class DryAreaUpdateViewSet(viewsets.GenericViewSet):
 
         dry_area_instance.save()
         return Response({"message": "Dry Area updated successfully"}, status=status.HTTP_200_OK)
+    
+
+
+
+class EmployeeActiveTaskViewset(viewsets.GenericViewSet):
+
+    def get(self, request, uid):
+        try:
+            Emp_instance = Employee.objects.get(uid=uid)
+        except Employee.DoesNotExist:
+            return Response({"error": "Employee not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        collection_list = Collection.objects.none()  
+
+        if Emp_instance:
+            if Emp_instance.employee_type == "Campus_Employee":
+                collection_list = Collection.objects.filter(
+                    supervisor=Emp_instance
+                ).exclude(
+                    current_status="DELIVERED_TO_STUDENT"
+                )
+
+            elif Emp_instance.employee_type == "Driver":
+                pickup_collection_list = Collection.objects.filter(
+                    pickup_driver=Emp_instance
+                ).exclude(
+                    current_status="DELIVERED_TO_STUDENT"
+                )
+
+                drop_collection_list = Collection.objects.filter(
+                    drop_driver=Emp_instance
+                ).exclude(
+                    current_status="DELIVERED_TO_STUDENT"
+                )
+
+                collection_list = pickup_collection_list.union(drop_collection_list)
+
+            elif Emp_instance.employee_type == "Washing":
+                collection_list = Collection.objects.filter(
+                    washing_supervisor=Emp_instance
+                ).exclude(
+                    current_status="DELIVERED_TO_STUDENT"
+                )
+
+            elif Emp_instance.employee_type == "Drying":
+                collection_list = Collection.objects.filter(
+                    drying_supervisor=Emp_instance
+                ).exclude(
+                    current_status="DELIVERED_TO_STUDENT"
+                )
+
+            elif Emp_instance.employee_type == "Segregation":
+                collection_list = Collection.objects.filter(
+                    segregation_supervisor=Emp_instance
+                ).exclude(
+                    current_status="DELIVERED_TO_STUDENT"
+                )
+            else:
+                return Response({"error": "Invalid employee type"}, status=status.HTTP_400_BAD_REQUEST)
+
+            serializer = CollectionResponseSerializer(collection_list, many=True)
+            return Response({"active_tasks": serializer.data}, status=status.HTTP_200_OK)
+        
+        else:
+            return Response({"error": "Invalid Employee ID"}, status=status.HTTP_404_NOT_FOUND)
+
+
+
+
+class EmployeeInActiveTaskViewset(viewsets.GenericViewSet):
+
+    def get(self, request, uid):
+        pagination_count = request.data.get("count", 10)  
+
+        try:
+            Emp_instance = Employee.objects.get(uid=uid)
+        except Employee.DoesNotExist:
+            return Response({"error": "Employee not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        collection_list = Collection.objects.none()  
+
+        if Emp_instance:
+            if Emp_instance.employee_type == "Campus_Employee":
+                collection_list = Collection.objects.filter(
+                    supervisor=Emp_instance,
+                    current_status="DELIVERED_TO_STUDENT"
+                )
+
+            elif Emp_instance.employee_type == "Driver":
+                pickup_collection_list = Collection.objects.filter(
+                    pickup_driver=Emp_instance,
+                    current_status="DELIVERED_TO_STUDENT"
+                )
+
+                drop_collection_list = Collection.objects.filter(
+                    drop_driver=Emp_instance,
+                    current_status="DELIVERED_TO_STUDENT"
+                )
+
+                collection_list = pickup_collection_list.union(drop_collection_list)
+
+            elif Emp_instance.employee_type == "Washing":
+                collection_list = Collection.objects.filter(
+                    washing_supervisor=Emp_instance,
+                    current_status="DELIVERED_TO_STUDENT"
+                )
+
+            elif Emp_instance.employee_type == "Drying":
+                collection_list = Collection.objects.filter(
+                    drying_supervisor=Emp_instance,
+                    current_status="DELIVERED_TO_STUDENT"
+                )
+
+            elif Emp_instance.employee_type == "Segregation":
+                collection_list = Collection.objects.filter(
+                    segregation_supervisor=Emp_instance,
+                    current_status="DELIVERED_TO_STUDENT"
+                )
+            else:
+                return Response({"error": "Invalid employee type"}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Apply pagination
+            paginated_collection_list = collection_list[:pagination_count]
+
+            serializer = CollectionResponseSerializer(paginated_collection_list, many=True)
+            return Response({"inactive_tasks": serializer.data}, status=status.HTTP_200_OK)
+        
+        else:
+            return Response({"error": "Invalid Employee ID"}, status=status.HTTP_404_NOT_FOUND)
