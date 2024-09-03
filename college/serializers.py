@@ -364,13 +364,30 @@ class StudentDaySheetSerializer(serializers.ModelSerializer):
     class Meta:
         model = StudentDaySheet
         fields =  "__all__"
-
+class FacultyResponseSerializer (serializers.ModelSerializer):
+    class Meta:
+        model = Faculty
+        fields = ['uid','name']
 class FacultyDaySheetSerializer(serializers.ModelSerializer):
-    faculty = serializers.SlugRelatedField(slug_field='uid', queryset=Faculty.objects.all())
+    faculty_uid = serializers.CharField(write_only=True, required=True)
+    faculty =FacultyResponseSerializer(read_only=True)
 
     class Meta:
         model = FacultyDaySheet
         fields = "__all__"
+
+    def create(self, validated_data):
+        faculty_uid = validated_data.pop('faculty_uid', None)
+        if faculty_uid:
+            try:
+                faculty_intance = Faculty.objects.get(uid=faculty_uid)
+                validated_data['faculty'] = faculty_intance
+            except College.DoesNotExist:
+                raise serializers.ValidationError({'faculty_uid': 'Faculty with this UID does not exist.'})
+        
+        campus = super().create(validated_data)
+        return campus
+
 
 
 class StudentRemarkSerializer(serializers.ModelSerializer):

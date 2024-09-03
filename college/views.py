@@ -33,14 +33,14 @@ class EmployeeViewSet(viewsets.GenericViewSet):
         
         else:
             serializer = EmployeeSerializer(data=request.data)
-            if serializer.is_valid():
+            if serializer.is_valid(raise_exception=True):
                 employee = serializer.save()
 
                 # Handle the uploaded daily images from request.FILES
                 daily_images_files = request.FILES.getlist('daily_images')
                 for image_file in daily_images_files:
                     image_serializer = EmployeeDailyImageSerializer(data={'image': image_file})
-                    if image_serializer.is_valid():
+                    if image_serializer.is_valid(raise_exception=True):
                         daily_image_instance = image_serializer.save()
                         employee.daily_images.add(daily_image_instance)
 
@@ -127,13 +127,13 @@ class WashingMashineViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             washing_mashine = serializer.save()
 
             before_and_after_cleaned_image_files = request.FILES.getlist('before_and_after_cleaned_image')
             for image_file in before_and_after_cleaned_image_files:
                 image_serializer = WashingMashineCleanImageSerializer(data={'image': image_file})
-                if image_serializer.is_valid():
+                if image_serializer.is_valid(raise_exception=True):
                     daily_image_instance = image_serializer.save()
                     washing_mashine.before_and_after_cleaned_image.add(daily_image_instance)
                 else:
@@ -164,7 +164,7 @@ class WashingMashineViewSet(viewsets.ModelViewSet):
             obj = WashingMashine.objects.get(uid=uid)
             serializer = self.get_serializer(obj, data=request.data)
             
-            if serializer.is_valid():
+            if serializer.is_valid(raise_exception=True):
                 serializer.save()
                 return Response({"message": "Washing Machine updated successfully", "data": serializer.data},status=status.HTTP_200_OK)
             else:
@@ -188,14 +188,14 @@ class DryingMashineViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             washing_mashine = serializer.save()
 
             # Handle the before_and_after_cleaned_image files
             before_and_after_cleaned_image_files = request.FILES.getlist('before_and_after_cleaned_image')
             for image_file in before_and_after_cleaned_image_files:
                 image_serializer = WashingMashineCleanImageSerializer(data={'image': image_file})
-                if image_serializer.is_valid():
+                if image_serializer.is_valid(raise_exception=True):
                     daily_image_instance = image_serializer.save()
                     washing_mashine.before_and_after_cleaned_image.add(daily_image_instance)
                 else:
@@ -227,7 +227,7 @@ class DryingMashineViewSet(viewsets.ModelViewSet):
             obj = DryingMashine.objects.get(uid=uid)
             serializer = self.get_serializer(obj, data=request.data)
 
-            if serializer.is_valid():
+            if serializer.is_valid(raise_exception=True):
                 serializer.save()
                 return Response({"message": "Drying Machine updated successfully", "data": serializer.data},status=status.HTTP_200_OK)
             else:
@@ -366,7 +366,7 @@ class CollectionViewSet(viewsets.GenericViewSet):
             student_day_sheet= json.loads(request.data.get('student_day_sheet', '[]'))
             for student_day in student_day_sheet:
                 student_day_sheet_serializer = StudentDaySheetSerializer(data=student_day)
-                if student_day_sheet_serializer.is_valid():
+                if student_day_sheet_serializer.is_valid(raise_exception=True):
                     student_day_sheet_instance = student_day_sheet_serializer.save()
                     collection_instance.student_day_sheet.add(student_day_sheet_instance)
 
@@ -374,7 +374,7 @@ class CollectionViewSet(viewsets.GenericViewSet):
             faculty_day_sheet = json.loads(request.data.get('faculty_day_sheet', '[]'))
             for faculty_day in faculty_day_sheet:
                 faculty_day_sheet_serializer = FacultyDaySheetSerializer(data=faculty_day)
-                if faculty_day_sheet_serializer.is_valid():
+                if faculty_day_sheet_serializer.is_valid(raise_exception=True):
                     faculty_day_sheet_instance = faculty_day_sheet_serializer.save()
                     collection_instance.faculty_day_sheet.add(faculty_day_sheet_instance)
                 else:
@@ -386,7 +386,7 @@ class CollectionViewSet(viewsets.GenericViewSet):
             if student_remark_list is not None:
                 for student_remark in student_remark_list:
                     student_remark_serializer = FacultyDaySheetSerializer(data=student_remark)
-                    if student_remark_serializer.is_valid():
+                    if student_remark_serializer.is_valid(raise_exception=True):
                         student_remark_instance = student_remark_serializer.save()
                         collection_instance.student_remark.add(student_remark_instance)
 
@@ -394,7 +394,7 @@ class CollectionViewSet(viewsets.GenericViewSet):
             if student_remark_list is not None:
                 for warehouse_remark in warehouse_remark_list:
                     warehouse_remark_serializer = FacultyDaySheetSerializer(data=warehouse_remark)
-                    if warehouse_remark_serializer.is_valid():
+                    if warehouse_remark_serializer.is_valid(raise_exception=True):
                         warehouse_remark_instance = warehouse_remark_serializer.save()
                         collection_instance.warehouse.add(warehouse_remark_instance)
 
@@ -404,7 +404,7 @@ class CollectionViewSet(viewsets.GenericViewSet):
             daily_image_sheet_file = request.FILES.getlist('daily_image_sheet')
             for image_file in daily_image_sheet_file:
                 image_serializer = DailyImageSheetSerializer(data={'image': image_file})
-                if image_serializer.is_valid():
+                if image_serializer.is_valid(raise_exception=True):
                     daily_image_instance = image_serializer.save()
                     collection_instance.daily_image_sheet.add(daily_image_instance)
             
@@ -488,7 +488,7 @@ class CollectionViewSet(viewsets.GenericViewSet):
                 student_day_sheet = json.loads(request.data.get('student_day_sheet', '[]'))
                 for student_day in student_day_sheet:
                     student_day_sheet_serializer = StudentDaySheetSerializer(data=student_day)
-                    if student_day_sheet_serializer.is_valid():
+                    if student_day_sheet_serializer.is_valid(raise_exception=True):
                         student_day_sheet_instance = student_day_sheet_serializer.save()
                         collection_instance.student_day_sheet.add(student_day_sheet_instance)
 
@@ -497,7 +497,7 @@ class CollectionViewSet(viewsets.GenericViewSet):
                 faculty_day_sheet = json.loads(request.data.get('faculty_day_sheet', '[]'))
                 for faculty_day in faculty_day_sheet:
                     faculty_day_sheet_serializer = FacultyDaySheetSerializer(data=faculty_day)
-                    if faculty_day_sheet_serializer.is_valid():
+                    if faculty_day_sheet_serializer.is_valid(raise_exception=True):
                         faculty_day_sheet_instance = faculty_day_sheet_serializer.save()
                         collection_instance.faculty_day_sheet.add(faculty_day_sheet_instance)
 
@@ -507,18 +507,18 @@ class CollectionViewSet(viewsets.GenericViewSet):
                 student_remark_list = json.loads(request.data.get('student_remark', '[]'))
                 for student_remark in student_remark_list:
                     student_remark_serializer = StudentRemarkSerializer(data=student_remark)
-                    if student_remark_serializer.is_valid():
+                    if student_remark_serializer.is_valid(raise_exception=True):
                         student_remark_instance = student_remark_serializer.save()
                         collection_instance.student_remark.add(student_remark_instance)
 
             if 'warehouse_remark' in request.data:
-                collection_instance.warehouse.clear()
+                collection_instance.warehouse_remark.clear()
                 warehouse_remark_list = json.loads(request.data.get('warehouse_remark', '[]'))
                 for warehouse_remark in warehouse_remark_list:
                     warehouse_remark_serializer = RemarkByWarehouseSerializer(data=warehouse_remark)
-                    if warehouse_remark_serializer.is_valid():
+                    if warehouse_remark_serializer.is_valid(raise_exception=True):
                         warehouse_remark_instance = warehouse_remark_serializer.save()
-                        collection_instance.warehouse.add(warehouse_remark_instance)
+                        collection_instance.warehouse_remark.add(warehouse_remark_instance)
 
             # Handle daily images update
             if 'daily_image_sheet' in request.FILES:
@@ -526,7 +526,7 @@ class CollectionViewSet(viewsets.GenericViewSet):
                 daily_image_sheet_file = request.FILES.getlist('daily_image_sheet')
                 for image_file in daily_image_sheet_file:
                     image_serializer = DailyImageSheetSerializer(data={'image': image_file})
-                    if image_serializer.is_valid():
+                    if image_serializer.is_valid(raise_exception=True):
                         daily_image_instance = image_serializer.save()
                         collection_instance.daily_image_sheet.add(daily_image_instance)
 
@@ -536,7 +536,7 @@ class CollectionViewSet(viewsets.GenericViewSet):
                 campus_pickup_bag_numbers_list =  json.loads(request.data.get('campus_pickup_bag_numbers', []))
                 for campus_pickup_bag in campus_pickup_bag_numbers_list:
                     campus_pickup_bag_number_serializer = LogisticbagNumberSerializer(data=campus_pickup_bag)
-                    if campus_pickup_bag_number_serializer.is_valid():
+                    if campus_pickup_bag_number_serializer.is_valid(raise_exception=True):
                         campus_pickup_bag_number_instance = campus_pickup_bag_number_serializer.save()
                         collection_instance.campus_pickup_bag_numbers.add(campus_pickup_bag_number_instance)
 
@@ -544,7 +544,7 @@ class CollectionViewSet(viewsets.GenericViewSet):
                 warehouse_pickup_bag_numbers_list =  json.loads(request.data.get('warehouse_pickup_bag_numbers', []))
                 for warehouse_pickup_bag in warehouse_pickup_bag_numbers_list:
                     warehouse_pickup_bag_number_serializer = LogisticbagNumberSerializer(data=warehouse_pickup_bag)
-                    if warehouse_pickup_bag_number_serializer.is_valid():
+                    if warehouse_pickup_bag_number_serializer.is_valid(raise_exception=True):
                         warehouse_pickup_bag_number_instance =warehouse_pickup_bag_number_serializer.save()
                         collection_instance.warehouse_pickup_bag_numbers.add(warehouse_pickup_bag_number_instance)
 
@@ -553,7 +553,7 @@ class CollectionViewSet(viewsets.GenericViewSet):
                 campus_drop_bag_numbers_list =  json.loads(request.data.get('campus_drop_bag_numbers', []))
                 for campus_drop_bag in campus_drop_bag_numbers_list:
                     campus_drop_bag_number_serializer = LogisticbagNumberSerializer(data=campus_drop_bag)
-                    if campus_drop_bag_number_serializer.is_valid():
+                    if campus_drop_bag_number_serializer.is_valid(raise_exception=True):
                         campus_drop_bag_number_instance = campus_drop_bag_number_serializer.save()
                         collection_instance.campus_drop_bag_numbers.add(campus_drop_bag_number_instance)
 
@@ -561,7 +561,7 @@ class CollectionViewSet(viewsets.GenericViewSet):
                 warehouse_drop_bag_numbers_list =  json.loads(request.data.get('warehouse_drop_bag_numbers', []))
                 for warehouse_drop_bag in warehouse_drop_bag_numbers_list:
                     warehouse_drop_bag_number_serializer = LogisticbagNumberSerializer(data=warehouse_drop_bag)
-                    if warehouse_drop_bag_number_serializer.is_valid():
+                    if warehouse_drop_bag_number_serializer.is_valid(raise_exception=True):
                         warehouse_drop_bag_number_instance = warehouse_drop_bag_number_serializer.save()
                         collection_instance.warehouse_drop_bag_numbers.add(warehouse_drop_bag_number_instance)
 
@@ -573,7 +573,7 @@ class CollectionViewSet(viewsets.GenericViewSet):
                 campus_pickup_faculty_bag_numbers_list =  json.loads(request.data.get('campus_pickup_faculty_bag_number', []))
                 for campus_pickup_faculty_bag in campus_pickup_faculty_bag_numbers_list:
                     campus_pickup_faculty_bag_number_serializer = FacultybagNumbersSerializer(data=campus_pickup_faculty_bag)
-                    if campus_pickup_faculty_bag_number_serializer.is_valid():
+                    if campus_pickup_faculty_bag_number_serializer.is_valid(raise_exception=True):
                         campus_pickup_faculty_bag_number_instance = campus_pickup_faculty_bag_number_serializer.save()
                         collection_instance.campus_pickup_faculty_bag_number.add(campus_pickup_faculty_bag_number_instance)
 
@@ -581,7 +581,7 @@ class CollectionViewSet(viewsets.GenericViewSet):
                 warehouse_pickup_faculty_bag_numbers_list =  json.loads(request.data.get('campus_drop_faculty_bag_number', []))
                 for warehouse_pickup_faculty_bag in warehouse_pickup_faculty_bag_numbers_list:
                     warehouse_pickup_faculty_bag_number_serializer = FacultybagNumbersSerializer(data=warehouse_pickup_faculty_bag)
-                    if warehouse_pickup_faculty_bag_number_serializer.is_valid():
+                    if warehouse_pickup_faculty_bag_number_serializer.is_valid(raise_exception=True):
                         warehouse_pickup_faculty_bag_number_instance =warehouse_pickup_faculty_bag_number_serializer.save()
                         collection_instance.campus_drop_faculty_bag_number.add(warehouse_pickup_faculty_bag_number_instance)
 
@@ -590,7 +590,7 @@ class CollectionViewSet(viewsets.GenericViewSet):
                 campus_drop_faculty_bag_numbers_list =  json.loads(request.data.get('warehouse_pickup_faculty_bag_number', []))
                 for campus_drop_faculty_bag in campus_drop_faculty_bag_numbers_list:
                     campus_drop_faculty_bag_number_serializer = FacultybagNumbersSerializer(data=campus_drop_faculty_bag)
-                    if campus_drop_faculty_bag_number_serializer.is_valid():
+                    if campus_drop_faculty_bag_number_serializer.is_valid(raise_exception=True):
                         campus_drop_faculty_bag_number_instance = campus_drop_faculty_bag_number_serializer.save()
                         collection_instance.warehouse_pickup_faculty_bag_number.add(campus_drop_faculty_bag_number_instance)
 
@@ -598,7 +598,7 @@ class CollectionViewSet(viewsets.GenericViewSet):
                 warehouse_drop_faculty_bag_numbers_list =  json.loads(request.data.get('warehouse_drop_faculty_bag_number', []))
                 for warehouse_drop_faculty_bag in warehouse_drop_faculty_bag_numbers_list:
                     warehouse_drop_faculty_bag_number_serializer = FacultybagNumbersSerializer(data=warehouse_drop_faculty_bag)
-                    if warehouse_drop_faculty_bag_number_serializer.is_valid():
+                    if warehouse_drop_faculty_bag_number_serializer.is_valid(raise_exception=True):
                         warehouse_drop_faculty_bag_number_instance = warehouse_drop_faculty_bag_number_serializer.save()
                         collection_instance.warehouse_drop_faculty_bag_number.add(warehouse_drop_faculty_bag_number_instance)
 
