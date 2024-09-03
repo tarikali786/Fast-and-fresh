@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404
 from college.models import (Employee, College,Campus,Faculty,Student,
                             WashingMashine, DryingMashine,Vehicle, VehicleExpenses,FoldingTable,
                             complaint,Collection,StudentDaySheet,FacultyDaySheet,StudentRemark,
-                            RemarkByWarehouse,Routes,DryArea,FilldArea
+                            RemarkByWarehouse,Routes,DryArea,FilldArea,PreviousStatus
                             )
 from .serializers import (EmployeeSerializer, EmployeeDailyImageSerializer, 
                           CollegeSerializer, CampusSerializer,
@@ -419,15 +419,35 @@ class CollectionViewSet(viewsets.GenericViewSet):
 
     def update(self, request, uid=None):
 
+        current_status = request.data.get("current_status")
+
         try:
             collection_instance = Collection.objects.get(uid=uid)
+
+            if current_status and collection_instance:
+
+                if collection_instance.current_status ==current_status:
+                    pass
+                else:
+               
+                    previous_status_instance = PreviousStatus.objects.create(
+                        status=collection_instance.current_status,
+                        updated_time=collection_instance.updated_at
+                    )
+                    print(previous_status_instance)
+    
+                    collection_instance.previous_status.add(previous_status_instance)
+
+
         except Collection.DoesNotExist:
             return Response({'error': 'Collection not found'}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = CollectionSerializer(collection_instance, data=request.data, partial=True)
         if serializer.is_valid(raise_exception=True):
             collection_instance = serializer.save()
-            
+
+
+     
             campus_uid = request.data.get('campus_uid')
             supervisor_uid = request.data.get('supervisor_uid')
 
@@ -484,7 +504,6 @@ class CollectionViewSet(viewsets.GenericViewSet):
 
             # Update related nested objects if provided
             if 'student_day_sheet' in request.data:
-                collection_instance.student_day_sheet.clear()
                 student_day_sheet = json.loads(request.data.get('student_day_sheet', '[]'))
                 for student_day in student_day_sheet:
                     student_day_sheet_serializer = StudentDaySheetSerializer(data=student_day)
@@ -493,7 +512,6 @@ class CollectionViewSet(viewsets.GenericViewSet):
                         collection_instance.student_day_sheet.add(student_day_sheet_instance)
 
             if 'faculty_day_sheet' in request.data:
-                collection_instance.faculty_day_sheet.clear()
                 faculty_day_sheet = json.loads(request.data.get('faculty_day_sheet', '[]'))
                 for faculty_day in faculty_day_sheet:
                     faculty_day_sheet_serializer = FacultyDaySheetSerializer(data=faculty_day)
@@ -503,7 +521,6 @@ class CollectionViewSet(viewsets.GenericViewSet):
 
             # Handle remarks update
             if 'student_remark' in request.data:
-                collection_instance.student_remark.clear()
                 student_remark_list = json.loads(request.data.get('student_remark', '[]'))
                 for student_remark in student_remark_list:
                     student_remark_serializer = StudentRemarkSerializer(data=student_remark)
@@ -512,7 +529,6 @@ class CollectionViewSet(viewsets.GenericViewSet):
                         collection_instance.student_remark.add(student_remark_instance)
 
             if 'warehouse_remark' in request.data:
-                collection_instance.warehouse_remark.clear()
                 warehouse_remark_list = json.loads(request.data.get('warehouse_remark', '[]'))
                 for warehouse_remark in warehouse_remark_list:
                     warehouse_remark_serializer = RemarkByWarehouseSerializer(data=warehouse_remark)
@@ -522,7 +538,6 @@ class CollectionViewSet(viewsets.GenericViewSet):
 
             # Handle daily images update
             if 'daily_image_sheet' in request.FILES:
-                collection_instance.daily_image_sheet.clear()
                 daily_image_sheet_file = request.FILES.getlist('daily_image_sheet')
                 for image_file in daily_image_sheet_file:
                     image_serializer = DailyImageSheetSerializer(data={'image': image_file})

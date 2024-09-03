@@ -4,7 +4,7 @@ from college.models import (Employee, EmployeeDailyImage,College,Campus,Faculty,
                             VehicleExpenses,Vehicle,FoldingTable,complaint,
                             DailyImageSheet,StudentDaySheet,FacultyDaySheet,
                             StudentRemark,RemarkByWarehouse,Collection,Routes,LogisticBagNumer,FacultybagNumbers,
-                            FilldArea,DryArea
+                            FilldArea,DryArea,PreviousStatus
                             )
 class EmployeeDailyImageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -441,6 +441,11 @@ class FacultybagNumbersSerializer(serializers.ModelSerializer):
         model = FacultybagNumbers
         fields = "__all__"
 
+class PreviousStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PreviousStatus
+        fields = ['status',"updated_time"]
+
 
 class CollectionSerializer(serializers.ModelSerializer):
 
@@ -529,6 +534,7 @@ class CollectionResponseSerializer(serializers.ModelSerializer):
     warehouse_pickup_faculty_bag_number = FacultybagNumbersSerializer(many=True, required=False)
     warehouse_drop_faculty_bag_number = FacultybagNumbersSerializer(many=True, required=False)
 
+    previous_status = PreviousStatusSerializer(many=True, required=False)
 
  
 
@@ -570,6 +576,7 @@ class CollectionResponseSerializer(serializers.ModelSerializer):
             'warehouse_pickup_faculty_bag_number',
             'warehouse_drop_faculty_bag_number',
             "isActive",
+            "previous_status",
             "created_at",
             "updated_at"
 

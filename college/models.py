@@ -166,6 +166,12 @@ class FacultybagNumbers(models.Model):
     faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE,null=True,blank=True)
     photo = models.ImageField(upload_to=upload_location,  blank=True,null=True)
 
+
+class PreviousStatus(models.Model):
+    status = models.CharField(max_length=100, blank=True, null=True)
+    updated_time = models.DateTimeField(null=True,blank=True)
+
+
 class Collection(StatusMixin):
     CollectionStatus =[
         ("READY_TO_PICK","READY_TO_PICK"),
@@ -213,8 +219,7 @@ class Collection(StatusMixin):
     campus_drop_faculty_bag_number = models.ManyToManyField(FacultybagNumbers,blank=True,related_name='campus_drop_faculty_collections')
     warehouse_pickup_faculty_bag_number = models.ManyToManyField(FacultybagNumbers,blank=True,related_name='warehouse_pickup_faculty_collections'    )
     warehouse_drop_faculty_bag_number = models.ManyToManyField(FacultybagNumbers,blank=True,related_name='warehouse_drop_faculty_collections')
-
-    
+    previous_status = models.ManyToManyField(PreviousStatus,blank=True)
 
     
     
