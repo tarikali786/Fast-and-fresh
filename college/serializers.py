@@ -569,4 +569,8 @@ class CollectionResponseSerializer(serializers.ModelSerializer):
             'campus_drop_faculty_bag_number',
             'warehouse_pickup_faculty_bag_number',
             'warehouse_drop_faculty_bag_number',
+            "isActive",
+            "created_at",
+            "updated_at"
+
         ]
