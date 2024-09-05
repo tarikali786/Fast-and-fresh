@@ -96,7 +96,7 @@ urlpatterns = [
     #dryarea
 
     path("dryarea/", DryAreaViewSet.as_view({ "post": "create","get":"list"})),
-    path("dryarea/<uuid:uid>/", DryAreaViewSet.as_view({"get": "retrieve" })),
+    path("dryarea/<uuid:uid>/", DryAreaViewSet.as_view({"get": "retrieve","delete": "destroy" })),
     path("dryarea-update/<uuid:uid>/",DryAreaUpdateViewSet.as_view({'patch':"update"})),
     # Mics
     path("get-campus-details/<uuid:uid>/",GetCampusDetailsByUIDsViewset.as_view({"get":"get"})),

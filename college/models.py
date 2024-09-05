@@ -222,10 +222,6 @@ class Collection(StatusMixin):
     previous_status = models.ManyToManyField(PreviousStatus,blank=True)
 
     
-    
-    
-
-   
 
     def __str__(self):
         return f"Collection {self.id} - {self.current_status}"
