@@ -21,7 +21,7 @@ from .serializers import (EmployeeSerializer, EmployeeDailyImageSerializer,
                           StudentRemarkSerializer,RemarkByWarehouseSerializer,
                           EmployeeSignInserializer,GetCampusSerializer,RoutesSerializer,
                           LogisticbagNumberSerializer,FacultybagNumbersSerializer,DryAreaSerializer,
-                          CollectionResponseSerializer
+                          CollectionResponseSerializer,FilldAreaSerializer
                           )
 
 
@@ -1001,28 +1001,34 @@ class DryAreaUpdateViewSet(viewsets.GenericViewSet):
         except DryArea.DoesNotExist:
             return Response({"error": "Dry Area not found"}, status=status.HTTP_404_NOT_FOUND)
         
-        campus_uid = request.data.get('campus_uid')
-        filled = request.data.get('filled')
+        dry_area_id= request.data.get('dry_area_id')
+        row= request.data.get('row')
+        column= request.data.get('column')
         
-        # Update fill_area if campus_uid is provided
-        if campus_uid:
-            try:
-                campus_instance = Campus.objects.get(uid=campus_uid)
-            except Campus.DoesNotExist:
-                return Response({"error": "Campus not found"}, status=status.HTTP_404_NOT_FOUND)
-            
-            # Check if FilldArea instance exists for the given campus
-            fill_area_instance, created = FilldArea.objects.update_or_create(
-                campus=campus_instance,
-                defaults={'filled': filled}
-            )
-            
-            # Assign the FilldArea instance to the DryArea instance
-            dry_area_instance.fill_area = fill_area_instance
+        if dry_area_id:
+            dry_area_instance.dry_area_id = dry_area_id
+            dry_area_instance.save()
+        elif row:
+            dry_area_instance.row = row
+            dry_area_instance.save()
+        elif column:
+            dry_area_instance.column = column
+            dry_area_instance.save()
 
-        dry_area_instance.save()
-        return Response({"message": "Dry Area updated successfully"}, status=status.HTTP_200_OK)
-    
+        
+
+        
+
+        serializer = FilldAreaSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            fill_area_instance = serializer.save()
+            dry_area_instance.fill_area = fill_area_instance
+            dry_area_instance.save()
+            serializer_value = DryAreaSerializer(dry_area_instance)
+            return Response({"message": "Dry Area updated successfully","d":serializer_value.data}, status=status.HTTP_200_OK)
+                            
+        else:
+            return Response({"error": "Invalid data"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 

@@ -490,6 +490,8 @@ class CollectionTaskSerializer(serializers.Serializer):
 
 
 class FilldAreaSerializer(serializers.ModelSerializer):
+    
+    campus = serializers.SlugRelatedField(slug_field='uid', queryset=Campus.objects.all())
     class Meta:
         model = FilldArea
         fields = "__all__"
