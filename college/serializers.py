@@ -385,8 +385,8 @@ class FacultyDaySheetSerializer(serializers.ModelSerializer):
             except College.DoesNotExist:
                 raise serializers.ValidationError({'faculty_uid': 'Faculty with this UID does not exist.'})
         
-        campus = super().create(validated_data)
-        return campus
+        faculty = super().create(validated_data)
+        return faculty
 
 
 

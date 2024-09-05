@@ -502,22 +502,64 @@ class CollectionViewSet(viewsets.GenericViewSet):
                 except Employee.DoesNotExist:
                     return Response({'error': 'College supervisor not found'}, status=status.HTTP_404_NOT_FOUND)
 
-            # Update related nested objects if provided
+
+
             if 'student_day_sheet' in request.data:
                 student_day_sheet = json.loads(request.data.get('student_day_sheet', '[]'))
+
                 for student_day in student_day_sheet:
-                    student_day_sheet_serializer = StudentDaySheetSerializer(data=student_day)
-                    if student_day_sheet_serializer.is_valid(raise_exception=True):
-                        student_day_sheet_instance = student_day_sheet_serializer.save()
-                        collection_instance.student_day_sheet.add(student_day_sheet_instance)
+                    s_uid = student_day.get('uid')
+
+                    if s_uid:
+                        try:
+                            student_day_sheet_instance = StudentDaySheet.objects.get(uid=s_uid)
+
+                            student_day_sheet_serializer = StudentDaySheetSerializer(student_day_sheet_instance, data=student_day, partial=True)
+                            if student_day_sheet_serializer.is_valid(raise_exception=True):
+                                student_day_sheet_serializer.save()
+
+                        except StudentDaySheet.DoesNotExist:
+                            student_day_sheet_serializer = StudentDaySheetSerializer(data=student_day)
+                            if student_day_sheet_serializer.is_valid(raise_exception=True):
+                                student_day_sheet_instance = student_day_sheet_serializer.save()
+                                collection_instance.student_day_sheet.add(student_day_sheet_instance)
+                    else:
+                        student_day_sheet_serializer = StudentDaySheetSerializer(data=student_day)
+                        if student_day_sheet_serializer.is_valid(raise_exception=True):
+                            student_day_sheet_instance = student_day_sheet_serializer.save()
+                            collection_instance.student_day_sheet.add(student_day_sheet_instance)
+
+
+
+
 
             if 'faculty_day_sheet' in request.data:
                 faculty_day_sheet = json.loads(request.data.get('faculty_day_sheet', '[]'))
+
                 for faculty_day in faculty_day_sheet:
-                    faculty_day_sheet_serializer = FacultyDaySheetSerializer(data=faculty_day)
-                    if faculty_day_sheet_serializer.is_valid(raise_exception=True):
-                        faculty_day_sheet_instance = faculty_day_sheet_serializer.save()
-                        collection_instance.faculty_day_sheet.add(faculty_day_sheet_instance)
+                    f_day_sheet_uid = faculty_day.get('uid')
+
+                    if f_day_sheet_uid:
+                        try:
+                            faculty_instance = FacultyDaySheet.objects.get(uid=f_day_sheet_uid)
+                            faculty_day_sheet_serializer = FacultyDaySheetSerializer(faculty_instance, data=faculty_day, partial=True)
+                            if faculty_day_sheet_serializer.is_valid(raise_exception=True):
+                                faculty_day_sheet_serializer.save()
+                        except FacultyDaySheet.DoesNotExist:
+                            faculty_day_sheet_serializer = FacultyDaySheetSerializer(data=faculty_day)
+                            if faculty_day_sheet_serializer.is_valid(raise_exception=True):
+                                faculty_day_sheet_instance = faculty_day_sheet_serializer.save()
+                                collection_instance.faculty_day_sheet.add(faculty_day_sheet_instance)
+                    else:
+                        faculty_day_sheet_serializer = FacultyDaySheetSerializer(data=faculty_day)
+                        if faculty_day_sheet_serializer.is_valid(raise_exception=True):
+                            faculty_day_sheet_instance = faculty_day_sheet_serializer.save()
+                            collection_instance.faculty_day_sheet.add(faculty_day_sheet_instance)
+
+                        
+
+
+
 
             # Handle remarks update
             if 'student_remark' in request.data:
