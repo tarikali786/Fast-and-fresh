@@ -166,10 +166,19 @@ class FacultybagNumbers(models.Model):
     faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE,null=True,blank=True)
     photo = models.ImageField(upload_to=upload_location,  blank=True,null=True)
 
+class OtherClothBagNumber(models.Model):
+    number_of_bag = models.IntegerField(null=True,blank=True)
+    photo = models.ImageField(upload_to=upload_location,  blank=True,null=True)
 
 class PreviousStatus(models.Model):
     status = models.CharField(max_length=100, blank=True, null=True)
     updated_time = models.DateTimeField(null=True,blank=True)
+
+class OtherclothDaySheet(UUIDMixin):
+    name = models.CharField(max_length=200 , null=True,blank=True )
+    number_of_items = models.IntegerField(default=0,null=True,blank=True)
+    delivered = models.BooleanField(default=False,null=True,blank=True)
+
 
 
 class Collection(StatusMixin):
@@ -220,6 +229,19 @@ class Collection(StatusMixin):
     warehouse_pickup_faculty_bag_number = models.ManyToManyField(FacultybagNumbers,blank=True,related_name='warehouse_pickup_faculty_collections'    )
     warehouse_drop_faculty_bag_number = models.ManyToManyField(FacultybagNumbers,blank=True,related_name='warehouse_drop_faculty_collections')
     previous_status = models.ManyToManyField(PreviousStatus,blank=True)
+
+    # new
+    no_tag = models.IntegerField(null=True,blank=True,default=0)
+    other_cloth_daysheet = models.ManyToManyField(OtherclothDaySheet,blank=True)
+    other_cloth_campus_pickup =  models.ManyToManyField(OtherClothBagNumber,blank=True,related_name='campus_pickup_otherCloth_collections'    )
+    other_cloth_campus_drop =  models.ManyToManyField(OtherClothBagNumber,blank=True,related_name='campus_drop_otherCloth_collections'    )
+    other_cloth_warehouse_pickup =  models.ManyToManyField(OtherClothBagNumber,blank=True,related_name='warehouse_pickup_otherCloth_collections'    )
+    other_cloth_warehouse_drop =  models.ManyToManyField(OtherClothBagNumber,blank=True,related_name='warehouse_drop_otherCloth_collections'    )
+    completed_segregation_range = models.JSONField(null=True, blank=True)
+    
+
+
+
 
     
 

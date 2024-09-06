@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404
 from college.models import (Employee, College,Campus,Faculty,Student,
                             WashingMashine, DryingMashine,Vehicle, VehicleExpenses,FoldingTable,
                             complaint,Collection,StudentDaySheet,FacultyDaySheet,StudentRemark,
-                            RemarkByWarehouse,Routes,DryArea,FilldArea,PreviousStatus
+                            RemarkByWarehouse,Routes,DryArea,FilldArea,PreviousStatus, OtherclothDaySheet
                             )
 from .serializers import (EmployeeSerializer, EmployeeDailyImageSerializer, 
                           CollegeSerializer, CampusSerializer,
@@ -21,7 +21,8 @@ from .serializers import (EmployeeSerializer, EmployeeDailyImageSerializer,
                           StudentRemarkSerializer,RemarkByWarehouseSerializer,
                           EmployeeSignInserializer,GetCampusSerializer,RoutesSerializer,
                           LogisticbagNumberSerializer,FacultybagNumbersSerializer,DryAreaSerializer,
-                          CollectionResponseSerializer,FilldAreaSerializer
+                          CollectionResponseSerializer,FilldAreaSerializer,OtherclothDaySheetSerializer,
+                          OtherClothBagNumberSerializer
                           )
 
 
@@ -660,6 +661,58 @@ class CollectionViewSet(viewsets.GenericViewSet):
                         collection_instance.warehouse_drop_faculty_bag_number.add(warehouse_drop_faculty_bag_number_instance)
 
 
+            if "other_cloth_daysheet" in request.data:
+                other_cloth_daysheet_list =  json.loads(request.data.get('other_cloth_daysheet', []))
+                for other_c_daysheet in other_cloth_daysheet_list:
+                    other_uid = other_c_daysheet.get("uid")
+                    if other_uid:
+                        try:
+                            other_cloth_daysheet_instance = OtherclothDaySheet.objects.get(uid=other_uid)
+                            other_c_serializer = OtherclothDaySheetSerializer(other_cloth_daysheet_instance, data=other_c_daysheet, partial=True)
+                            if other_c_serializer.is_valid(raise_exception=True):
+                                other_c_serializer.save()
+                        except OtherclothDaySheet.DoesNotExist:
+                            return Response ({"error":"Other Cloth Daysheet uid does not exist"})
+                        
+                    else:
+                        other_cloth_daysheet_serializer = OtherclothDaySheetSerializer(data=other_c_daysheet)
+                        if other_cloth_daysheet_serializer.is_valid(raise_exception=True):
+                            other_cloth_daysheet_instance = other_cloth_daysheet_serializer.save()
+                            collection_instance.other_cloth_daysheet.add(other_cloth_daysheet_instance)
+
+
+            if 'other_cloth_campus_pickup' in request.data:
+                other_cloth_campus_pickup_list =  json.loads(request.data.get('other_cloth_campus_pickup', []))
+                for other_cloth_campus_pick in other_cloth_campus_pickup_list:
+                    other_cloth_campus_pickup_serializer = OtherClothBagNumberSerializer(data=other_cloth_campus_pick)
+                    if other_cloth_campus_pickup_serializer.is_valid(raise_exception=True):
+                        other_cloth_campus_pickup_instance = other_cloth_campus_pickup_serializer.save()
+                        collection_instance.other_cloth_campus_pickup.add(other_cloth_campus_pickup_instance)
+
+            if 'other_cloth_campus_drop' in request.data:
+                other_cloth_campus_drop_list =  json.loads(request.data.get('other_cloth_campus_drop', []))
+                for other_cloth_campus_drop in other_cloth_campus_drop_list:
+                    other_cloth_campus_drop_serializer = OtherClothBagNumberSerializer(data=other_cloth_campus_drop)
+                    if other_cloth_campus_drop_serializer.is_valid(raise_exception=True):
+                        other_cloth_campus_drop_instance = other_cloth_campus_drop_serializer.save()
+                        collection_instance.other_cloth_campus_drop.add(other_cloth_campus_drop_instance)
+
+            if 'other_cloth_warehouse_pickup' in request.data:
+                other_cloth_warehouse_pickup_list =  json.loads(request.data.get('other_cloth_warehouse_pickup', []))
+                for other_cloth_warehouse_pick in other_cloth_warehouse_pickup_list:
+                    other_cloth_warehouse_pickup_serializer = OtherClothBagNumberSerializer(data=other_cloth_warehouse_pick)
+                    if other_cloth_warehouse_pickup_serializer.is_valid(raise_exception=True):
+                        other_cloth_warehouse_pickup_instance = other_cloth_warehouse_pickup_serializer.save()
+                        collection_instance.other_cloth_warehouse_pickup.add(other_cloth_warehouse_pickup_instance)
+
+
+            if 'other_cloth_warehouse_drop' in request.data:
+                other_cloth_warehouse_drop_list =  json.loads(request.data.get('other_cloth_warehouse_drop', []))
+                for other_cloth_warehouse_d in other_cloth_warehouse_drop_list:
+                    other_cloth_warehouse_d_serializer = OtherClothBagNumberSerializer(data=other_cloth_warehouse_d)
+                    if other_cloth_warehouse_d_serializer.is_valid(raise_exception=True):
+                        other_cloth_warehouse_d_serializer_instance = other_cloth_warehouse_d_serializer.save()
+                        collection_instance.other_cloth_warehouse_drop.add(other_cloth_warehouse_d_serializer_instance)
 
 
             collection_instance.save()

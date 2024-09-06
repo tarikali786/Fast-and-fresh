@@ -4,7 +4,7 @@ from college.models import (Employee, EmployeeDailyImage,College,Campus,Faculty,
                             VehicleExpenses,Vehicle,FoldingTable,complaint,
                             DailyImageSheet,StudentDaySheet,FacultyDaySheet,
                             StudentRemark,RemarkByWarehouse,Collection,Routes,LogisticBagNumer,FacultybagNumbers,
-                            FilldArea,DryArea,PreviousStatus
+                            FilldArea,DryArea,PreviousStatus,OtherclothDaySheet,OtherClothBagNumber
                             )
 class EmployeeDailyImageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -446,6 +446,15 @@ class PreviousStatusSerializer(serializers.ModelSerializer):
         model = PreviousStatus
         fields = ['status',"updated_time"]
 
+class OtherclothDaySheetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=OtherclothDaySheet
+        fields = "__all__"
+
+class OtherClothBagNumberSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OtherClothBagNumber
+        fields = "__all__"
 
 class CollectionSerializer(serializers.ModelSerializer):
 
@@ -464,7 +473,11 @@ class CollectionSerializer(serializers.ModelSerializer):
     warehouse_pickup_faculty_bag_number = FacultybagNumbersSerializer(many=True, required=False)
     warehouse_drop_faculty_bag_number = FacultybagNumbersSerializer(many=True, required=False)
 
-
+    other_cloth_daysheet = OtherclothDaySheetSerializer(many=True, required=False)
+    other_cloth_campus_pickup = OtherClothBagNumberSerializer(many=True, required=False)
+    other_cloth_campus_drop = OtherClothBagNumberSerializer(many=True, required=False)
+    other_cloth_warehouse_pickup = OtherClothBagNumberSerializer(many=True, required=False)
+    other_cloth_warehouse_drop = OtherClothBagNumberSerializer(many=True, required=False)
  
 
     campus = CampusSerializer(read_only = True)
@@ -538,6 +551,12 @@ class CollectionResponseSerializer(serializers.ModelSerializer):
 
     previous_status = PreviousStatusSerializer(many=True, required=False)
 
+    other_cloth_daysheet = OtherclothDaySheetSerializer(many=True, required=False)
+    other_cloth_campus_pickup = OtherClothBagNumberSerializer(many=True, required=False)
+    other_cloth_campus_drop = OtherClothBagNumberSerializer(many=True, required=False)
+    other_cloth_warehouse_pickup = OtherClothBagNumberSerializer(many=True, required=False)
+    other_cloth_warehouse_drop = OtherClothBagNumberSerializer(many=True, required=False)
+
  
 
     campus = CampusSerializer(read_only = True)
@@ -579,6 +598,13 @@ class CollectionResponseSerializer(serializers.ModelSerializer):
             'warehouse_drop_faculty_bag_number',
             "isActive",
             "previous_status",
+            "no_tag",
+            "other_cloth_daysheet",
+            "other_cloth_campus_pickup",
+            "other_cloth_campus_drop",
+            "other_cloth_warehouse_pickup",
+            "other_cloth_warehouse_drop",
+            "completed_segregation_range",
             "created_at",
             "updated_at"
 
