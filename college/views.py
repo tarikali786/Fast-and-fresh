@@ -408,7 +408,16 @@ class CollectionViewSet(viewsets.GenericViewSet):
                 if image_serializer.is_valid(raise_exception=True):
                     daily_image_instance = image_serializer.save()
                     collection_instance.daily_image_sheet.add(daily_image_instance)
-            
+
+            if "other_cloth_daysheet" in request.data:
+                other_cloth_daysheet_list =  json.loads(request.data.get('other_cloth_daysheet', []))
+                for other_c_daysheet in other_cloth_daysheet_list:
+                    other_c_serializer = OtherclothDaySheetSerializer(other_c_daysheet)
+                    if other_c_serializer.is_valid(raise_exception=True):
+                        other_cloth_daysheet_instance=other_c_serializer.save()
+                        collection_instance.other_cloth_daysheet.add(other_cloth_daysheet_instance)
+
+
             collection_instance.save()
             
             collection_serializer = CollectionResponseSerializer(collection_instance)
