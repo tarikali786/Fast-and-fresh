@@ -562,6 +562,7 @@ class CollectionResponseSerializer(serializers.ModelSerializer):
     campus = CampusSerializer(read_only = True)
     supervisor = EmployeeSerializer(read_only =True)
     pickup_driver = EmployeeSerializer(read_only =True)
+    drop_driver = EmployeeSerializer(read_only =True)
     washing_supervisor = EmployeeSerializer(read_only =True)
     drying_supervisor = EmployeeSerializer(read_only =True)
     segregation_supervisor = EmployeeSerializer(read_only =True)
