@@ -481,14 +481,20 @@ class CollectionViewSet(viewsets.GenericViewSet):
             if supervisor_uid:
                 try:
                     supervisor_instance = Employee.objects.get(uid=supervisor_uid)
-                    collection_instance.supervisor = supervisor_instance
+                    if supervisor_instance.employee_type =="Campus_Employee":
+                        collection_instance.supervisor = supervisor_instance
+                    else:
+                        return Response({"error":"Employe type is not Campus supervisor or campus emplopyee"})
                 except Employee.DoesNotExist:
                     return Response({'error': 'supervisor not found'}, status=status.HTTP_404_NOT_FOUND)
             
             if washing_supervisor_uid:
                 try:
                     supervisor_instance = Employee.objects.get(uid=washing_supervisor_uid)
-                    collection_instance.washing_supervisor = supervisor_instance
+                    if supervisor_instance.employee_type =="Washing":
+                        collection_instance.washing_supervisor = supervisor_instance
+                    else:
+                        return Response({"error":"Employe type is not Washing supervisor"})
                 except Employee.DoesNotExist:
                     return Response({'error': 'supervisor not found'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -496,30 +502,42 @@ class CollectionViewSet(viewsets.GenericViewSet):
             if drying_supervisor_uid:
                 try:
                     drying_supervisor_instance = Employee.objects.get(uid=drying_supervisor_uid)
-                    print(drying_supervisor_instance)
-                    
-                    collection_instance.drying_supervisor = drying_supervisor_instance
+                    if drying_supervisor_instance.employee_type =="Drying":
+                        collection_instance.drying_supervisor = drying_supervisor_instance
+                    else:
+                        return Response({"error":"Employe type is not Drying supervisor"})
                 except Employee.DoesNotExist:
                     return Response({'error': 'Drying supervisor not found'}, status=status.HTTP_404_NOT_FOUND)
 
             if segregation_supervisor_uid:
                 try:
+                    
                     segregation_supervisor_instance = Employee.objects.get(uid=segregation_supervisor_uid)
-                    collection_instance.segregation_supervisor = segregation_supervisor_instance
+                    if drying_supervisor_instance.employee_type =="Segregation":
+                        collection_instance.segregation_supervisor = segregation_supervisor_instance
+                    else:
+                        return Response({"error":"Employe type is not Segregation supervisor"})
                 except Employee.DoesNotExist:
                     return Response({'error': 'Segregation supervisor not found'}, status=status.HTTP_404_NOT_FOUND)
 
             if drop_driver_uid:
                 try:
                     drop_driver_instance = Employee.objects.get(uid=drop_driver_uid)
-                    collection_instance.drop_driver = drop_driver_instance
+                    if drying_supervisor_instance.employee_type =="Driver":
+                    
+                        collection_instance.drop_driver = drop_driver_instance
+                    else:
+                        return Response({"error":"Employe type is not  driver"})
                 except Employee.DoesNotExist:
                     return Response({'error': 'Drop driver not found'}, status=status.HTTP_404_NOT_FOUND)
 
             if pickup_driver_uid:
                 try:
                     pickup_driver_instance = Employee.objects.get(uid=pickup_driver_uid)
-                    collection_instance.pickup_driver = pickup_driver_instance
+                    if drying_supervisor_instance.employee_type =="Driver":
+                        collection_instance.pickup_driver = pickup_driver_instance
+                    else:
+                        return Response({"error":"Employe type is not  driver"})
                 except Employee.DoesNotExist:
                     return Response({'error': 'Drop driver not found'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -943,7 +961,7 @@ class FilterCollectionsByStudentViewset(viewsets.GenericViewSet):
             collection_instance = Collection.objects.filter(
                 campus__uid=campus_uid, 
                 student_day_sheet__tag_number=tag_number ,
-                current_status = "DELIVERED_TO_CAMPUS"
+                current_status__in=["DELIVERED_TO_CAMPUS", "DELIVERED_TO_STUDENT"]
 
             )
 
