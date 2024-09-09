@@ -218,7 +218,7 @@ class Collection(StatusMixin):
     drying_supervisor = models.ForeignKey(Employee,  blank=True,null=True, on_delete=models.CASCADE, related_name='drying_supervisions')
     segregation_supervisor = models.ForeignKey(Employee,  blank=True,null=True, on_delete=models.CASCADE, related_name='segregation_supervisions')
     drop_driver = models.ForeignKey(Employee,  blank=True,null=True,on_delete=models.CASCADE, related_name='drop_drivers')
-    college_supervisor = models.ForeignKey(Employee,  blank=True,null=True, on_delete=models.CASCADE, related_name='college_supervisions')
+    # college_supervisor = models.ForeignKey(Employee,  blank=True,null=True, on_delete=models.CASCADE, related_name='college_supervisions')
     current_status = models.CharField(max_length=100, choices=CollectionStatus, blank=True,null=True )
     ETA = models.IntegerField(  blank=True,null=True)  #fatch college shcedule
     student_remark = models.ManyToManyField(StudentRemark,blank=True)

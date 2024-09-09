@@ -487,7 +487,7 @@ class CollectionSerializer(serializers.ModelSerializer):
     washing_supervisor = EmployeeSerializer(read_only =True)
     drying_supervisor = EmployeeSerializer(read_only =True)
     segregation_supervisor = EmployeeSerializer(read_only =True)
-    college_supervisor = EmployeeSerializer(read_only =True)
+    # college_supervisor = EmployeeSerializer(read_only =True)
 
    
 
