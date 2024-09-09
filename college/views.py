@@ -339,7 +339,6 @@ class CollectionViewSet(viewsets.GenericViewSet):
             drying_supervisor_uid = request.data.get('drying_supervisor_uid',[])
             segregation_supervisor_uid = request.data.get('segregation_supervisor_uid',[])
             drop_driver_uid = request.data.get('drop_driver_uid',[])
-            college_supervisor_uid = request.data.get('college_supervisor_uid',[])
 
            
             try:
@@ -383,12 +382,7 @@ class CollectionViewSet(viewsets.GenericViewSet):
                 except Employee.DoesNotExist:
                     return Response({'error': 'Drop driver not found'}, status=status.HTTP_404_NOT_FOUND)
 
-            if college_supervisor_uid:
-                try:
-                    college_supervisor_instance = Employee.objects.get(uid=college_supervisor_uid)
-                    collection_instance.college_supervisor = college_supervisor_instance
-                except Employee.DoesNotExist:
-                    return Response({'error': 'College supervisor not found'}, status=status.HTTP_404_NOT_FOUND)
+            
 
             # Update the ETA based on the college's schedule
             collection_instance.ETA = college_instance.schedule
@@ -498,7 +492,6 @@ class CollectionViewSet(viewsets.GenericViewSet):
             segregation_supervisor_uid = request.data.get('segregation_supervisor_uid')
             drop_driver_uid = request.data.get('drop_driver_uid')
             pickup_driver_uid = request.data.get('pickup_driver_uid')
-            college_supervisor_uid = request.data.get('college_supervisor_uid')
             washing_supervisor_uid = request.data.get('washing_supervisor_uid')
 
             # Update related employees if provided
@@ -574,13 +567,7 @@ class CollectionViewSet(viewsets.GenericViewSet):
                     return Response({'error': 'Drop driver not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
-            if college_supervisor_uid:
-                try:
-                    college_supervisor_instance = Employee.objects.get(uid=college_supervisor_uid)
-                    collection_instance.college_supervisor = college_supervisor_instance
-                except Employee.DoesNotExist:
-                    return Response({'error': 'College supervisor not found'}, status=status.HTTP_404_NOT_FOUND)
-
+            
 
 
             if 'student_day_sheet' in request.data:
