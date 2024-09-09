@@ -146,6 +146,11 @@ class FacultyDaySheet(UUIDMixin):
 class StudentRemark(UUIDMixin):
     tag_number = models.CharField(max_length=20,  blank=True,null=True)
     remark = models.TextField(blank=True,null=True)
+    remark_type = models.CharField(max_length=250,null=True,blank=True)
+    remark_status = models.BooleanField(default=False,null=True,blank=True)
+    resolution = models.CharField(max_length=250,null=True,blank=True)
+    
+
 
     def __str__(self) -> str:
         return self.tag_number
