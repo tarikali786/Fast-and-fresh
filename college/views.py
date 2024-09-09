@@ -545,7 +545,7 @@ class CollectionViewSet(viewsets.GenericViewSet):
                 try:
                     
                     segregation_supervisor_instance = Employee.objects.get(uid=segregation_supervisor_uid)
-                    if drying_supervisor_instance.employee_type =="Segregation":
+                    if segregation_supervisor_instance.employee_type =="Segregation":
                         collection_instance.segregation_supervisor = segregation_supervisor_instance
                     else:
                         return Response({"error":"Employe type is not Segregation supervisor"})
