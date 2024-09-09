@@ -55,7 +55,8 @@ urlpatterns = [
     #Vehicle
 
     path("vehicle/", VehicleViewSet.as_view({"get": "list", "post": "create"})),
-    path("vehicle/<uuid:uid>/", VehicleViewSet.as_view({"get": "retrieve",  "patch": "partial_update", "delete": "destroy"})),
+    path("vehicle/<uuid:uid>/", VehicleViewSet.as_view({"get": "retrieve",   "delete": "destroy"})),
+    path("vehicle-update/", VehicleUpdateViewset.as_view({"patch": "update"})),
 
     #folding table
 

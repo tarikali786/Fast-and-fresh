@@ -301,10 +301,11 @@ class VehicleSerializer(serializers.ModelSerializer):
         slug_field='uid',  
         queryset=Employee.objects.all()
     )
-    expenses = serializers.SlugRelatedField(
-        slug_field='uid',  
-        queryset=VehicleExpenses.objects.all()
-    )
+    # expenses = serializers.SlugRelatedField(
+    #     slug_field='uid',  
+    #     queryset=VehicleExpenses.objects.all(),
+    #     required=False
+    # )
 
     class Meta:
         model = Vehicle

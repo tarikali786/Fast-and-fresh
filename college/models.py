@@ -348,6 +348,7 @@ class Vehicle(StatusMixin):
 
 
 
+
 class FoldingTable(StatusMixin):
     table_number = models.CharField(max_length=200,  blank=True,null=True)
     last_used_by = models.ForeignKey(Employee, on_delete=models.CASCADE,  blank=True,null=True)
@@ -387,4 +388,5 @@ class DryArea(StatusMixin):
     row = models.IntegerField(blank=True)
     column = models.IntegerField(blank=True)
     fill_area = models.ForeignKey(FilldArea,on_delete=models.CASCADE,null=True,blank=True)
+
 

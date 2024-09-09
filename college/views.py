@@ -257,6 +257,38 @@ class VehicleViewSet(viewsets.ModelViewSet):
     lookup_field = 'uid'    
 
 
+class VehicleUpdateViewset(viewsets.GenericViewSet):
+
+    def update(self, request):
+        last_driver_id = request.data.get("last_driver_uid")
+        vehicle_id = request.data.get("vehicle_uid")
+        odo_meter_image = request.data.get("odo_meter_image")
+
+        if not last_driver_id or not vehicle_id:
+            return Response({"error": "last_driver_uid or vehicle_uid not found!"}, status=status.HTTP_400_BAD_REQUEST)
+
+        last_driver = get_object_or_404(Employee, uid=last_driver_id)
+
+        vehicle= get_object_or_404(Vehicle, uid=vehicle_id)
+        serialize = VehicleSerializer(vehicle,data=request.data,partial=True)
+        if serialize.is_valid(raise_exception=True):
+            vehicle_instance = serialize.save()
+
+            vehicle_instance.last_driver = last_driver
+            if odo_meter_image:
+                vehicle_instance.odo_meter_image = odo_meter_image
+
+            vehicle_instance.save()
+
+            serializer = VehicleSerializer(vehicle_instance)
+
+            return Response({"message": "Vehicle updated", "data": serializer.data}, status=status.HTTP_200_OK)
+
+        
+         
+
+
+
 
 class FoldingTableViewSet(viewsets.ModelViewSet):
     queryset = FoldingTable.objects.all()
