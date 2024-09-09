@@ -879,8 +879,7 @@ class GetEmployeeCollectionsViewset(viewsets.GenericViewSet):
                 Q(washing_supervisor__uid=uid) |
                 Q(drying_supervisor__uid=uid) |
                 Q(segregation_supervisor__uid=uid) |
-                Q(drop_driver__uid=uid) |
-                Q(college_supervisor__uid=uid)
+                Q(drop_driver__uid=uid) 
             )
 
             if not collections.exists():
