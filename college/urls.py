@@ -8,6 +8,7 @@ urlpatterns = [
     path("login/",EmployeeSignInViewset.as_view({"post":"post"})),
     path("logout/",EmployeeLogoutViewset.as_view({"post":"logout"})),
     path('refresh-token/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('employee-update/<uuid:uid>/', EmployeeUpdateViewset.as_view({"patch":"update"}), name='employee-update'),
     path("all-employee/",AllEmployeeViewset.as_view({"get":"get"})),
 
     

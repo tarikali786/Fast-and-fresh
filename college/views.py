@@ -86,7 +86,16 @@ class EmployeeSignInViewset(viewsets.GenericViewSet):
         else:
             return Response({"error": "Employee not found"}, status=status.HTTP_400_BAD_REQUEST)
         
-        
+
+class EmployeeUpdateViewset(viewsets.GenericViewSet):
+    def update(self,request,uid):
+        employee = Employee.objects.get(uid=uid)
+        serializer = EmployeeSerializer(employee, data=request.data,partial=True)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response({"message": "Employee updated successfully", "data": serializer.data}, status=status.HTTP_200_OK)
+        return Response({"message": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 
