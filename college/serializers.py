@@ -519,7 +519,7 @@ class CollectionTaskSerializer(serializers.Serializer):
 class CampusResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model= Campus
-        fields = ['uid','color']
+        fields = ['uid','color','name']
 
 
 class FilldAreaSerializer(serializers.ModelSerializer):
