@@ -297,10 +297,8 @@ class VehicleExpensesSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class VehicleSerializer(serializers.ModelSerializer):
-    last_driver = serializers.SlugRelatedField(
-        slug_field='uid',  
-        queryset=Employee.objects.all()
-    )
+    last_driver_uid = serializers.UUIDField(write_only=True)
+    last_driver = EmployeeSerializer(read_only=True,required=False)
     # expenses = serializers.SlugRelatedField(
     #     slug_field='uid',  
     #     queryset=VehicleExpenses.objects.all(),
@@ -310,6 +308,21 @@ class VehicleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Vehicle
         fields = "__all__"
+
+    def create(self, validated_data):
+        last_driver_uid = validated_data.pop('last_driver_uid', None)
+        if last_driver_uid:
+            last_driver_instance = Employee.objects.get(uid=last_driver_uid)
+            validated_data['last_driver'] = last_driver_instance
+        return super(VehicleSerializer, self).create(validated_data)
+    
+    def update(self, instance, validated_data):
+        last_driver_uid = validated_data.pop('last_driver_uid', None)
+        if last_driver_uid:
+            last_driver_instance = Employee.objects.get(uid=last_driver_uid)
+            validated_data['last_cleaned_by'] = last_driver_instance
+        return super(VehicleSerializer, self).update(instance, validated_data)
+
 
     
     
@@ -496,23 +509,38 @@ class CollectionSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     
+
+    
         
 
 class CollectionTaskSerializer(serializers.Serializer):
     current_status = serializers.CharField(required=True)
 
+class CampusResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model= Campus
+        fields = ['uid','color']
 
 
 class FilldAreaSerializer(serializers.ModelSerializer):
     
     campus = serializers.SlugRelatedField(slug_field='uid', queryset=Campus.objects.all())
+
+    class Meta:
+        model = FilldArea
+        fields = "__all__"
+
+
+# Response
+class FilldAreaResponseSerializer(serializers.ModelSerializer):
+    campus = CampusResponseSerializer(required=False)
     class Meta:
         model = FilldArea
         fields = "__all__"
 
 
 class DryAreaSerializer(serializers.ModelSerializer):
-    fill_area = FilldAreaSerializer( required=False)  # Nested serializer for fill_area
+    fill_area = FilldAreaResponseSerializer( required=False)  
 
     class Meta:
         model = DryArea
@@ -601,6 +629,8 @@ class CollectionResponseSerializer(serializers.ModelSerializer):
             "isActive",
             "previous_status",
             "no_tag",
+            "previous_status",
+
             "other_cloth_daysheet",
             "other_cloth_campus_pickup",
             "other_cloth_campus_drop",
@@ -611,3 +641,5 @@ class CollectionResponseSerializer(serializers.ModelSerializer):
             "updated_at"
 
         ]
+
+    

@@ -31,6 +31,7 @@ class Campus(StatusMixin):
     college = models.ForeignKey(College, on_delete=models.CASCADE, related_name='campuses',null=True,blank=True)
     uniform = models.BooleanField(default=False,null=True, blank=True )
     max_student_count = models.IntegerField(default=0,null=True,blank=True)
+    color= models.CharField(max_length=120,  blank=True,null=True)
     def __str__(self):
         return f"{self.name} "
 
@@ -48,7 +49,7 @@ class Student(StatusMixin):
     mobile = models.BigIntegerField(default=0,  blank=True,null=True)
     email = models.EmailField( unique=True, blank=True,null=True)
     dob = models.DateField( blank=True,null=True)
-    year = models.DateField( blank=True)
+    year = models.CharField( blank=True)
     branch = models.CharField(max_length=300,  blank=True,null=True)
 
     

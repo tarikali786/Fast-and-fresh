@@ -479,7 +479,6 @@ class CollectionViewSet(viewsets.GenericViewSet):
                         status=collection_instance.current_status,
                         updated_time=collection_instance.updated_at
                     )
-                    print(previous_status_instance)
     
                     collection_instance.previous_status.add(previous_status_instance)
 
@@ -792,7 +791,8 @@ class CollectionViewSet(viewsets.GenericViewSet):
             collection_instance.save()
 
             collection_serializer = CollectionResponseSerializer(collection_instance)
-            return Response({"message": "Collection updated successfully", "data": collection_serializer.data}, status=status.HTTP_200_OK)
+           
+            return Response({"message": "Collection updated successfully", "data": collection_serializer.data,}, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Invalid Request'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -1118,6 +1118,8 @@ class DryAreaViewSet(viewsets.ModelViewSet):
     queryset = DryArea.objects.all()
     serializer_class = DryAreaSerializer
     lookup_field="uid"
+
+
 
 
 class DryAreaUpdateViewSet(viewsets.GenericViewSet):
