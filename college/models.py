@@ -32,12 +32,16 @@ class Campus(StatusMixin):
     uniform = models.BooleanField(default=False,null=True, blank=True )
     max_student_count = models.IntegerField(default=0,null=True,blank=True)
     color= models.CharField(max_length=120,  blank=True,null=True)
+    class Meta:
+        ordering = ["-created_at", "-updated_at"]
     def __str__(self):
         return f"{self.name} "
 
 class Faculty(StatusMixin):
     name = models.CharField(max_length=300,  blank=True,null=True)
     campus = models.ForeignKey(Campus, on_delete=models.CASCADE,  blank=True, null=True ,related_name='faculties')
+    class Meta:
+        ordering = ["-created_at", "-updated_at"]
 
     def __str__(self):
         return self.name.capitalize()
@@ -51,6 +55,9 @@ class Student(StatusMixin):
     dob = models.DateField( blank=True,null=True)
     year = models.CharField( blank=True)
     branch = models.CharField(max_length=300,  blank=True,null=True)
+
+    class Meta:
+        ordering = ["-created_at", "-updated_at"]
 
     
 
@@ -106,6 +113,7 @@ class Employee(AbstractUser):
     REQUIRED_FIELDS = []
 
     objects = CustomUserManager()
+    
 
     def save(self, *args, **kwargs):
         super(Employee, self).save(*args, **kwargs)
@@ -160,6 +168,7 @@ class RemarkByWarehouse(UUIDMixin):
     tag_number = models.CharField(max_length=20,  blank=True,null=True)
     remark = models.TextField(blank=True,null=True)
     employee = models.ForeignKey(Employee,blank=True,null=True, on_delete=models.CASCADE)
+    
 
     def __str__(self) -> str:
         return self.tag_number
@@ -219,7 +228,6 @@ class Collection(StatusMixin):
     drying_supervisor = models.ForeignKey(Employee,  blank=True,null=True, on_delete=models.CASCADE, related_name='drying_supervisions')
     segregation_supervisor = models.ForeignKey(Employee,  blank=True,null=True, on_delete=models.CASCADE, related_name='segregation_supervisions')
     drop_driver = models.ForeignKey(Employee,  blank=True,null=True,on_delete=models.CASCADE, related_name='drop_drivers')
-    # college_supervisor = models.ForeignKey(Employee,  blank=True,null=True, on_delete=models.CASCADE, related_name='college_supervisions')
     current_status = models.CharField(max_length=100, choices=CollectionStatus, blank=True,null=True )
     ETA = models.IntegerField(  blank=True,null=True)  #fatch college shcedule
     student_remark = models.ManyToManyField(StudentRemark,blank=True)
@@ -245,6 +253,9 @@ class Collection(StatusMixin):
     other_cloth_warehouse_drop =  models.ManyToManyField(OtherClothBagNumber,blank=True,related_name='warehouse_drop_otherCloth_collections'    )
     completed_segregation_range = models.JSONField(null=True, blank=True)
     
+
+    class Meta:
+        ordering = ["-created_at", "-updated_at"]
 
 
 
@@ -348,8 +359,13 @@ class Vehicle(StatusMixin):
     last_driver = models.ForeignKey(Employee, on_delete=models.CASCADE,  blank=True,null=True)
     fuel_level = models.IntegerField( blank=True,null=True )
     expenses = models.ForeignKey(VehicleExpenses,on_delete=models.CASCADE,blank=True,null=True, related_name="vehicle")
+
+    class Meta:
+        ordering = ["-created_at", "-updated_at"]
     def __str__(self):
         return f"{self.name} ({self.number_plate})"
+    
+
 
 
 
@@ -369,6 +385,9 @@ class complaint(UUIDMixin):
     campus = models.ForeignKey(Campus,on_delete=models.CASCADE,blank=True)
     complaint = models.TextField(blank=True)
     employee = models.ForeignKey(Employee,on_delete=models.CASCADE,blank=True)
+
+    class Meta:
+        ordering = ["-created_at", "-updated_at"]
 
 
     def __str__(self) -> str:

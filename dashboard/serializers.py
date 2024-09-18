@@ -86,3 +86,20 @@ class EmployeeDashboardSerializer(serializers.ModelSerializer):
     class Meta:
         model = Employee
         fields = "__all__"
+
+class CampusDashboard2Serializer(serializers.ModelSerializer):
+    class Meta:
+        model = Campus
+        fields = ["uid",'name']
+
+class EmployeeDashboard2Serializer(serializers.ModelSerializer):
+    class Meta:
+        model = Employee
+        fields = ["uid",'name']
+
+class CollectionDashboardSerializer(serializers.ModelSerializer):
+    campus = CampusDashboard2Serializer(read_only = True)
+    supervisor = EmployeeDashboard2Serializer(read_only =True)
+    class Meta:
+        model = Collection
+        fields = ["id",'uid','campus','total_cloths','total_uniforms',"supervisor",'ETA','isActive']

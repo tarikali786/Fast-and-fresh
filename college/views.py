@@ -78,7 +78,7 @@ class EmployeeSignInViewset(viewsets.GenericViewSet):
                 refresh = RefreshToken.for_user(employee)
                 employee_data= EmployeeSerializer(employee)
 
-                return Response({"data":employee_data.data,"refresh-token": str(refresh), "access-token": str(refresh.access_token)}, status=200)
+                return Response({"data":employee_data.data,"refresh_token": str(refresh), "access_token": str(refresh.access_token)}, status=200)
             else:
                 return Response({"error": "Invalid password"}, status=status.HTTP_400_BAD_REQUEST)
             
@@ -556,7 +556,7 @@ class CollectionViewSet(viewsets.GenericViewSet):
             if drop_driver_uid:
                 try:
                     drop_driver_instance = Employee.objects.get(uid=drop_driver_uid)
-                    if drying_supervisor_instance.employee_type =="Driver":
+                    if drop_driver_instance.employee_type =="Driver":
                     
                         collection_instance.drop_driver = drop_driver_instance
                     else:
@@ -567,7 +567,7 @@ class CollectionViewSet(viewsets.GenericViewSet):
             if pickup_driver_uid:
                 try:
                     pickup_driver_instance = Employee.objects.get(uid=pickup_driver_uid)
-                    if drying_supervisor_instance.employee_type =="Driver":
+                    if pickup_driver_instance.employee_type =="Driver":
                         collection_instance.pickup_driver = pickup_driver_instance
                     else:
                         return Response({"error":"Employe type is not  driver"})

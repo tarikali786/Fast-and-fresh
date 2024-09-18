@@ -83,6 +83,7 @@ class CampusDetailsViewset(GenericViewSet):
 
 
 class EmployeeDetailsViewset(GenericViewSet):
+
     def get(self,request,uid):
         try:
             employee = Employee.objects.get(uid=uid)
@@ -90,3 +91,16 @@ class EmployeeDetailsViewset(GenericViewSet):
             return Response({"data":serializers.data},status=status.HTTP_200_OK)
         except Employee.DoesNotExist:
             return Response({"error":"Employee not found"},status=status.HTTP_404_NOT_FOUND)
+
+
+
+class CollectionListViewSet(GenericViewSet):
+    def list(self,request):
+        try:
+            collectionList = Collection.objects.all()
+            serializer = CollectionDashboardSerializer(collectionList,many=True)
+            return Response (serializer.data,status=status.HTTP_200_OK)
+        except Collection.DoesNotExist:
+            return Response({"error":"Collection not found"},status=status.HTTP_404_NOT_FOUND)
+        
+        
