@@ -578,6 +578,7 @@ class CollectionResponseSerializer(serializers.ModelSerializer):
     campus_drop_faculty_bag_number = FacultybagNumbersSerializer(many=True, required=False)
     warehouse_pickup_faculty_bag_number = FacultybagNumbersSerializer(many=True, required=False)
     warehouse_drop_faculty_bag_number = FacultybagNumbersSerializer(many=True, required=False)
+    daily_image_sheet = DailyImageSheetSerializer(many=True, required=False)
 
     previous_status = PreviousStatusSerializer(many=True, required=False)
 
@@ -605,6 +606,7 @@ class CollectionResponseSerializer(serializers.ModelSerializer):
             'uid',
             'id',  # or list all fields you want to include
             'campus',
+            "daily_image_sheet",
             'student_day_sheet',
             'faculty_day_sheet',
             'total_cloths',
@@ -639,7 +641,11 @@ class CollectionResponseSerializer(serializers.ModelSerializer):
             "other_cloth_warehouse_drop",
             "completed_segregation_range",
             "created_at",
-            "updated_at"
+            "updated_at",
+            "campus_pickup_collection_image",
+            "campus_drop_collection_image",
+            "warehouse_pickup_image",
+            "warehouse_drop_image",
 
         ]
 
