@@ -5,6 +5,7 @@ urlpatterns = [
 
     # Employee
     path("add-employee/",EmployeeViewSet.as_view({"post":"create"})),
+    path("employee-delete/<uuid:uid>/",EmployeeViewSet.as_view({"delete":"delete"})),
     path("login/",EmployeeSignInViewset.as_view({"post":"post"})),
     path("logout/",EmployeeLogoutViewset.as_view({"post":"logout"})),
     path('refresh-token/', TokenRefreshView.as_view(), name='token_refresh'),

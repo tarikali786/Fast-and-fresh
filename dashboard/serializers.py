@@ -103,3 +103,11 @@ class CollectionDashboardSerializer(serializers.ModelSerializer):
     class Meta:
         model = Collection
         fields = ["id",'uid','campus','total_cloths','total_uniforms',"supervisor",'ETA','isActive']
+
+
+
+class RouteDashboardSerializer(serializers.ModelSerializer):
+    employee = EmployeeDashboard2Serializer(read_only =True)
+    class Meta:
+        model= Routes
+        fields = "__all__"

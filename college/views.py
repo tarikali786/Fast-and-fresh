@@ -48,6 +48,12 @@ class EmployeeViewSet(viewsets.GenericViewSet):
                 return Response({"message": "Employee created successfully", "data": serializer.data}, status=status.HTTP_201_CREATED)
             else:
                 return Response({"message": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            
+
+    def delete(self,request,uid):
+        employee = get_object_or_404(Employee, uid=uid)
+        employee.delete()
+        return Response({"message":f'{employee.name} is successfully delete'},status=status.HTTP_200_OK)
 
 
 class AllEmployeeViewset(viewsets.GenericViewSet):

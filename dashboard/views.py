@@ -103,4 +103,14 @@ class CollectionListViewSet(GenericViewSet):
         except Collection.DoesNotExist:
             return Response({"error":"Collection not found"},status=status.HTTP_404_NOT_FOUND)
         
+    
+
+class RouteListDashboardViewset(GenericViewSet):
+    def list(self,request):
+        try:
+            routeList = Routes.objects.all()
+            serializer = RouteDashboardSerializer(routeList,many=True)
+            return Response(serializer.data,status=status.HTTP_200_OK)
+        except Routes.DoesNotExist:
+            return Response({"error":"Route not found"},status=status.HTTP_404_NOT_FOUND)
         
