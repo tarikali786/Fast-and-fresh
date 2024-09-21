@@ -57,11 +57,11 @@ class EmployeeViewSet(viewsets.GenericViewSet):
 
 
 class AllEmployeeViewset(viewsets.GenericViewSet):
-    queryset = Employee.objects.all()
-    serializer_class = EmployeeSerializer
+    
     def get(self,request):
-        return Response({"message": "All Employees", "data": self.serializer_class(self.queryset,
-                                                                                   many=True).data}, status=status.HTTP_200_OK)
+        employees = Employee.objects.all()
+        serializer = EmployeeSerializer(employees,many=True)
+        return Response({"data":serializer.data},status=status.HTTP_200_OK)
     
 class EmployeeLogoutViewset(viewsets.GenericViewSet):
     permission_classes =[IsAuthenticated]

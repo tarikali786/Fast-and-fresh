@@ -22,6 +22,9 @@ class College(StatusMixin):
     campus_employee = models.ManyToManyField("Employee", blank=True)
     routes = models.ForeignKey('Routes',on_delete=models.CASCADE,null=True,blank=True)
 
+    class Meta:
+        ordering = ["-created_at", "-updated_at"]
+
     def __str__(self):
         return self.name
 
@@ -113,6 +116,10 @@ class Employee(AbstractUser):
     REQUIRED_FIELDS = []
 
     objects = CustomUserManager()
+
+    class Meta:
+        ordering = ["-date_joined",]
+
     
 
     def save(self, *args, **kwargs):
@@ -139,8 +146,11 @@ class StudentDaySheet(UUIDMixin):
     ware_house_regular_cloths =models.IntegerField( blank=True,null=True, default=0)
     ware_house_uniform =models.IntegerField( blank=True,null=True, default=0)
     delivered = models.BooleanField(default=False,null=True,blank=True)
+    class Meta:
+        ordering = ["-created_at", "-updated_at"]
     def __str__(self) -> str:
         return self.tag_number
+    
 
 class FacultyDaySheet(UUIDMixin):
     # changes
@@ -148,6 +158,9 @@ class FacultyDaySheet(UUIDMixin):
     regular_cloths = models.IntegerField( blank=True,null=True, default=0)
     ware_house_regular_cloths =models.IntegerField( blank=True,null=True, default=0)
     delivered = models.BooleanField(default=False,null=True,blank=True)
+
+    class Meta:
+        ordering = ["-created_at", "-updated_at"]
 
     def __str__(self) -> str:
         return self.tag_number
@@ -158,7 +171,8 @@ class StudentRemark(UUIDMixin):
     remark_type = models.CharField(max_length=250,null=True,blank=True)
     remark_status = models.BooleanField(default=False,null=True,blank=True)
     resolution = models.CharField(max_length=250,null=True,blank=True)
-    
+    class Meta:
+        ordering = ["-created_at", "-updated_at"]
 
 
     def __str__(self) -> str:
@@ -168,18 +182,21 @@ class RemarkByWarehouse(UUIDMixin):
     tag_number = models.CharField(max_length=20,  blank=True,null=True)
     remark = models.TextField(blank=True,null=True)
     employee = models.ForeignKey(Employee,blank=True,null=True, on_delete=models.CASCADE)
-    
+    class Meta:
+        ordering = ["-created_at", "-updated_at"]
 
     def __str__(self) -> str:
         return self.tag_number
 
 class LogisticBagNumer(models.Model):
     bag_number = models.IntegerField(  blank=True,null=True)
+    
 
 class FacultybagNumbers(models.Model):
     number_of_bag = models.IntegerField(null=True,blank=True)
     faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE,null=True,blank=True)
     photo = models.ImageField(upload_to=upload_location,  blank=True,null=True)
+    
 
 class OtherClothBagNumber(models.Model):
     number_of_bag = models.IntegerField(null=True,blank=True)
@@ -193,6 +210,9 @@ class OtherclothDaySheet(UUIDMixin):
     name = models.CharField(max_length=200 , null=True,blank=True )
     number_of_items = models.IntegerField(default=0,null=True,blank=True)
     delivered = models.BooleanField(default=False,null=True,blank=True)
+
+    class Meta:
+        ordering = ["-created_at", "-updated_at"]
 
 
 
@@ -268,6 +288,9 @@ class Collection(StatusMixin):
 class WashingMashineCleanImage(UUIDMixin):
     image = models.ImageField(upload_to=upload_location,  blank=True,null=True)
 
+    class Meta:
+        ordering = ["-created_at", "-updated_at"]
+
     def __str__(self):
         return f"Image {self.id} - {self.image.name}"
 
@@ -298,12 +321,19 @@ class WashingMashine(StatusMixin):
             image.image.delete(save=False)
             # Delete the image record from the database
             image.delete()
+    class Meta:
+        ordering = ["-created_at", "-updated_at"]
 
     def __str__(self):
         return f"Washing Machine {self.mashine_number}"
 
 class DryingMashineCleanImage(UUIDMixin):
     image = models.ImageField(upload_to=upload_location,  blank=True,null=True)
+
+    class Meta:
+        ordering = ["-created_at", "-updated_at"]
+
+
 
 class DryingMashine(StatusMixin):
     Mashing_status = [
@@ -332,7 +362,8 @@ class DryingMashine(StatusMixin):
             image.image.delete(save=False)
             # Delete the image record from the database
             image.delete()
-
+    class Meta:
+        ordering = ["-created_at", "-updated_at"]
     def __str__(self):
         return f"Drying Machine {self.mashine_number}"
     
@@ -342,6 +373,8 @@ class VehicleExpenses(UUIDMixin):
     expense_date = models.DateField(blank=True,null=True)
     image = models.ImageField(upload_to=upload_location,  blank=True,null=True)
 
+    class Meta:
+        ordering = ["-created_at", "-updated_at"]
     def __str__(self) -> str:
         return self.expense_type
 
@@ -375,7 +408,8 @@ class FoldingTable(StatusMixin):
     table_number = models.CharField(max_length=200,  blank=True,null=True)
     last_used_by = models.ForeignKey(Employee, on_delete=models.CASCADE,  blank=True,null=True)
 
-
+    class Meta:
+        ordering = ["-created_at", "-updated_at"]
     def __str__(self):
         return self.table_number
 
@@ -401,17 +435,18 @@ class Routes(StatusMixin):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE,null=True,blank=True,related_name="routes_employee")
 
 
-
+    class Meta:
+        ordering = ["-created_at", "-updated_at"]
 
 class FilldArea(models.Model):
     campus = models.ForeignKey(Campus,on_delete=models.CASCADE,null=True,blank=True)
     filled = models.JSONField(null=True,blank=True)
-
 
 class DryArea(StatusMixin):
     dry_area_id = models.IntegerField(blank=True)
     row = models.IntegerField(blank=True)
     column = models.IntegerField(blank=True)
     fill_area = models.ForeignKey(FilldArea,on_delete=models.CASCADE,null=True,blank=True)
-
+    class Meta:
+        ordering = ["-created_at", "-updated_at"]
 
