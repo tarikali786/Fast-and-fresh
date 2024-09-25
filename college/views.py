@@ -58,10 +58,16 @@ class EmployeeViewSet(viewsets.GenericViewSet):
 
 class AllEmployeeViewset(viewsets.GenericViewSet):
     
-    def get(self,request):
-        employees = Employee.objects.all()
-        serializer = EmployeeSerializer(employees,many=True)
-        return Response({"data":serializer.data},status=status.HTTP_200_OK)
+    def get(self, request):
+        query = request.GET.get('q')  
+        if query:
+            employees = Employee.objects.filter(employee_type=query)
+        else:
+            employees = Employee.objects.all()
+            
+        serializer = EmployeeSerializer(employees, many=True)
+        return Response({"data": serializer.data}, status=status.HTTP_200_OK)
+
     
 class EmployeeLogoutViewset(viewsets.GenericViewSet):
     permission_classes =[IsAuthenticated]

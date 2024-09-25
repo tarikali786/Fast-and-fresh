@@ -6,6 +6,8 @@ from college.models import (Employee, EmployeeDailyImage,College,Campus,Faculty,
                             StudentRemark,RemarkByWarehouse,Collection,Routes,LogisticBagNumer,FacultybagNumbers,
                             FilldArea,DryArea,PreviousStatus,OtherclothDaySheet,OtherClothBagNumber
                             )
+
+from dashboard.serializers import EmployeeDashboard2Serializer
 class EmployeeDailyImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = EmployeeDailyImage
@@ -31,7 +33,8 @@ class EmployeeSerializerData(serializers.ModelSerializer):
 
 class RoutesSerializer(serializers.ModelSerializer):
     employee_uid = serializers.CharField(write_only=True, required=True)
-    # employee = EmployeeSerializerData(read_only=True)
+    employee =EmployeeDashboard2Serializer(read_only =True)
+    
     class Meta:
         model = Routes
         fields = '__all__'
@@ -50,6 +53,27 @@ class RoutesSerializer(serializers.ModelSerializer):
         
         routes = super().create(validated_data)
         return routes
+    
+    def update(self, instance, validated_data):
+        employee_uid = validated_data.pop("employee_uid", None)
+
+        # Update the employee based on employee_uid
+        if employee_uid:
+            try:
+                employee_instance = Employee.objects.get(uid=employee_uid)
+                if employee_instance.employee_type == "Driver":
+                    instance.employee = employee_instance  # Update the employee instance
+                else:
+                    raise serializers.ValidationError({'Error': 'Employee type is not a driver'})                    
+            except Employee.DoesNotExist:
+                raise serializers.ValidationError({'Employee': 'Employee with this UID does not exist.'})
+
+        # Update the name field
+        if 'name' in validated_data:
+            instance.name = validated_data['name']
+
+        instance.save()  # Save the updated instance
+        return instance
 class CollegeSerializer(serializers.ModelSerializer):
     campus_employee = serializers.SlugRelatedField(
         queryset=Employee.objects.all(),
@@ -321,7 +345,7 @@ class VehicleSerializer(serializers.ModelSerializer):
         last_driver_uid = validated_data.pop('last_driver_uid', None)
         if last_driver_uid:
             last_driver_instance = Employee.objects.get(uid=last_driver_uid)
-            validated_data['last_cleaned_by'] = last_driver_instance
+            validated_data['last_driver'] = last_driver_instance
         return super(VehicleSerializer, self).update(instance, validated_data)
 
 
