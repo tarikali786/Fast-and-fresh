@@ -70,10 +70,22 @@ class AllEmployeeViewset(viewsets.GenericViewSet):
 
     
 class EmployeeLogoutViewset(viewsets.GenericViewSet):
-    permission_classes =[IsAuthenticated]
+    permission_classes = [IsAuthenticated]
+
     def logout(self, request):
-        logout(request)
-        return Response({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
+        try:
+            # Blacklist the refresh token
+            refresh_token = request.data.get('refresh_token')
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+
+            # Log the user out and clear session
+            logout(request)
+
+            return Response({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
 
 class EmployeeSignInViewset(viewsets.GenericViewSet):

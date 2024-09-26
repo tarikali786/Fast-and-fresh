@@ -37,10 +37,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    "corsheaders",
-    'rest_framework',
     'college',
+    # thired party app
+    'rest_framework',
+    "corsheaders",
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
 
 ]
 
@@ -137,6 +139,8 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=60),
     'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=60),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
 }
 
 # Static files (CSS, JavaScript, Images)
