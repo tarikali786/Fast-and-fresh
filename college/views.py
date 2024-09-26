@@ -407,6 +407,9 @@ class CollectionViewSet(viewsets.GenericViewSet):
 
             # Update the ETA based on the college's schedule
             collection_instance.ETA = college_instance.schedule
+            if collection_instance.isActive ==False:
+                collection_instance.isActive = True
+                
 
             collection_instance.save()
             
