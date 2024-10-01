@@ -72,6 +72,9 @@ class RoutesSerializer(serializers.ModelSerializer):
         if 'name' in validated_data:
             instance.name = validated_data['name']
 
+        if 'isActive' in validated_data:
+            instance.isActive = validated_data['isActive']
+
         instance.save()  # Save the updated instance
         return instance
 class CollegeSerializer(serializers.ModelSerializer):
@@ -150,6 +153,7 @@ class CampusSerializer(serializers.ModelSerializer):
         return campus
 
     def update(self, instance, validated_data):
+        print("dudu")
         college_uid = validated_data.pop('college_uid', None)
         if college_uid:
             try:
