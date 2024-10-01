@@ -78,7 +78,7 @@ class CampusDashboardSerializer(serializers.ModelSerializer):
 class facultyDashboardSerializer(serializers.ModelSerializer):
     class Meta:
         model = Faculty
-        fields = ["uid","id",'name']
+        fields = ["uid","id",'name','isActive']
     
 
 

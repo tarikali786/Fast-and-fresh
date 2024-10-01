@@ -18,7 +18,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Employee
-        fields = ['uid','id','email','name','mobile','dob','profile_image','employee_type','salary','aadhar_number','daily_images','username','is_superuser','last_login','password']
+        fields = ['uid','id','email','name','mobile','dob','profile_image','employee_type','salary','aadhar_number','daily_images','username','is_superuser','last_login','password',"is_active"]
         extra_kwargs = {"password": {"write_only": True}}
   
 
@@ -336,6 +336,12 @@ class VehicleSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         last_driver_uid = validated_data.pop('last_driver_uid', None)
+      
+        if 'isActive'  in validated_data :
+            validated_data['isActive'] = True
+        
+
+
         if last_driver_uid:
             last_driver_instance = Employee.objects.get(uid=last_driver_uid)
             validated_data['last_driver'] = last_driver_instance

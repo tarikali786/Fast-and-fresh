@@ -32,7 +32,7 @@ class Campus(StatusMixin):
     tag_name = models.CharField(max_length=100,  blank=True,null=True)
     name = models.CharField(max_length=255,  blank=True,null=True)
     college = models.ForeignKey(College, on_delete=models.CASCADE, related_name='campuses',null=True,blank=True)
-    uniform = models.BooleanField(default=False,null=True, blank=True )
+    uniform = models.BooleanField(default=False,  blank=True )
     max_student_count = models.IntegerField(default=0,null=True,blank=True)
     color= models.CharField(max_length=120,  blank=True,null=True)
     class Meta:
