@@ -1052,47 +1052,30 @@ class DriverCollectionViewset(viewsets.GenericViewSet):
             employee_instance = Employee.objects.get(uid=uid)
             if employee_instance.employee_type != "Driver":
                 return Response({"error": "Employee is not a driver."}, status=status.HTTP_400_BAD_REQUEST)
-            # Get all Routes instances associated with the employee UID
-            routes_instances = Routes.objects.filter(employee__uid=uid)
 
-            if not routes_instances.exists():
-                return Response({"error": "No routes found for the given employee UID."}, status=status.HTTP_404_NOT_FOUND)
+            # Filter collections by the specified statuses
+            filtered_collection_list = Collection.objects.filter(
+                Q(current_status="READY_TO_PICK") |
+                Q(current_status="INTRANSIT_FROM_cAMPUS") |
+                Q(current_status="INTRANSIT_FROM_WAREHOUSE") |
+                Q(current_status="READY_FOR_DELIVERY")
+            )
 
-            # Initialize an empty list to store all filtered collections
-            filtered_collections = []
-
-            # Iterate through each routes instance
-            for routes_instance in routes_instances:
-                # Get the list of colleges associated with each routes instance
-                college_instances = College.objects.filter(routes=routes_instance)
-                
-                for college in college_instances:
-                    campus_instances = Campus.objects.filter(college=college)
-                    for campus in campus_instances:
-                        collection_instances = Collection.objects.filter(campus=campus)
-
-                        # Filter collections based on the statuses: READY_TO_PICK, IN_TRANSIT, READY_FOR_DELIVERY
-                        filtered_collection = collection_instances.filter(
-                            Q(current_status="READY_TO_PICK") |
-                            Q(current_status="INTRANSIT_FROM_cAMPUS") |
-                            Q(current_status="INTRANSIT_FROM_WAREHOUSE") |
-                            Q(current_status="READY_FOR_DELIVERY")
-                        )
-
-                        # Add the filtered collections to the list
-                        filtered_collections.extend(filtered_collection)
+            # Filter collections further by the route's employee
+            filtered_collections = filtered_collection_list.filter(
+                campus__college__routes__employee=employee_instance
+            )
 
             # Serialize the filtered collections
-            serializer_collection = CollectionResponseSerializer(filtered_collections, many=True)
+            serializer = CollectionResponseSerializer(filtered_collections, many=True)
 
-            # Return the serialized data
-            return Response({'data': serializer_collection.data}, status=status.HTTP_200_OK)
+            return Response({'data': serializer.data}, status=status.HTTP_200_OK)
 
+        except Employee.DoesNotExist:
+            return Response({"error": "Employee not found."}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"error": "An error occurred while retrieving collections.", "details": str(e)},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-
 
 class CollectionTaskviewset(viewsets.GenericViewSet):
     
