@@ -408,13 +408,7 @@ class CollectionViewSet(viewsets.GenericViewSet):
                 except Employee.DoesNotExist:
                     return Response({'error': 'Segregation supervisor not found'}, status=status.HTTP_404_NOT_FOUND)
 
-            if drop_driver_uid:
-                try:
-                    drop_driver_instance = Employee.objects.get(uid=drop_driver_uid)
-                    collection_instance.drop_driver = drop_driver_instance
-                except Employee.DoesNotExist:
-                    return Response({'error': 'Drop driver not found'}, status=status.HTTP_404_NOT_FOUND)
-
+            
             
 
             # Update the ETA based on the college's schedule
