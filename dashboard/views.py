@@ -1,10 +1,12 @@
 from rest_framework.response import Response
+from django.db.models.functions import TruncMonth,Cast
+from django.db.models import Count
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import status
 from college.models import *
 from college.serializers import *
 from dashboard.serializers import *
-
+from django.db.models import FloatField, Sum
 
 class CollegeListViewset(GenericViewSet):
 
@@ -114,3 +116,50 @@ class RouteListDashboardViewset(GenericViewSet):
         except Routes.DoesNotExist:
             return Response({"error":"Route not found"},status=status.HTTP_404_NOT_FOUND)
         
+
+
+class AnalyticViewset(GenericViewSet):
+    def list(self,request):
+        monthly_college_data = College.objects.annotate(month=TruncMonth('created_at')).values('month').annotate(college_count=Count('id')).order_by('month')
+        college_data = list(monthly_college_data)
+
+        monthly_Student_data = Student.objects.annotate(month=TruncMonth('created_at')).values('month').annotate(student_count=Count('id')).order_by('month')
+        student_data = list(monthly_Student_data)
+
+        monthly_campus_data = Campus.objects.annotate(month=TruncMonth('created_at')).values('month').annotate(campus_count=Count('id')).order_by('month')
+        campus_data = list(monthly_campus_data)
+
+        monthly_Collection_data = Collection.objects.annotate(month=TruncMonth('created_at')).values('month').annotate(campus_count=Count('id')).order_by('month')
+        collection_data = list(monthly_Collection_data)
+
+        total_earnings = College.objects.annotate(monthly_payment_float=Cast('monthly_payment', FloatField()))\
+                            .aggregate(total_earnings_sum=Sum('monthly_payment_float'))
+        
+        monthly_earnings = College.objects.annotate(month=TruncMonth('created_at'))\
+                            .annotate(monthly_payment_float=Cast('monthly_payment', FloatField()))\
+                            .values('month')\
+                            .annotate(total_earnings=Sum('monthly_payment_float'))\
+                            .order_by('month')
+        
+        total_colleges = College.objects.count()
+        total_campus = Campus.objects.count()
+        total_student = Student.objects.count()
+        total_Employee = Employee.objects.count()
+        total_Vehcile = Vehicle.objects.count()
+
+
+
+        return Response({
+            "college":college_data,
+            "total_colleges":total_colleges,
+            "student":student_data,
+            "total_student":total_student,
+            "campus":campus_data,
+            "total_campus":total_campus,
+            "collection":collection_data,
+            "total_earnings":total_earnings['total_earnings_sum'] ,
+            "monthly_earnings":list(monthly_earnings),
+            "total_Vehcile":total_Vehcile,
+            "total_Employee":total_Employee,
+
+        },status=status.HTTP_200_OK)
