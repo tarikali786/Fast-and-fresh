@@ -371,7 +371,6 @@ class CollectionViewSet(viewsets.GenericViewSet):
 
             drying_supervisor_uid = request.data.get('drying_supervisor_uid',[])
             segregation_supervisor_uid = request.data.get('segregation_supervisor_uid',[])
-            drop_driver_uid = request.data.get('drop_driver_uid',[])
 
            
             try:
@@ -381,6 +380,7 @@ class CollectionViewSet(viewsets.GenericViewSet):
                 routes_instance = Routes.objects.get(uid = college_instance.routes.uid)
                 if routes_instance:
                     collection_instance.pickup_driver = routes_instance.employee
+                    collection_instance.drop_driver = routes_instance.employee
 
 
 
@@ -525,8 +525,6 @@ class CollectionViewSet(viewsets.GenericViewSet):
             # Optional fields update
             drying_supervisor_uid = request.data.get('drying_supervisor_uid')
             segregation_supervisor_uid = request.data.get('segregation_supervisor_uid')
-            drop_driver_uid = request.data.get('drop_driver_uid')
-            pickup_driver_uid = request.data.get('pickup_driver_uid')
             washing_supervisor_uid = request.data.get('washing_supervisor_uid')
 
             # Update related employees if provided
@@ -580,28 +578,7 @@ class CollectionViewSet(viewsets.GenericViewSet):
                 except Employee.DoesNotExist:
                     return Response({'error': 'Segregation supervisor not found'}, status=status.HTTP_404_NOT_FOUND)
 
-            if drop_driver_uid:
-                try:
-                    drop_driver_instance = Employee.objects.get(uid=drop_driver_uid)
-                    if drop_driver_instance.employee_type =="Driver":
-                    
-                        collection_instance.drop_driver = drop_driver_instance
-                    else:
-                        return Response({"error":"Employe type is not  driver"})
-                except Employee.DoesNotExist:
-                    return Response({'error': 'Drop driver not found'}, status=status.HTTP_404_NOT_FOUND)
-
-            if pickup_driver_uid:
-                try:
-                    pickup_driver_instance = Employee.objects.get(uid=pickup_driver_uid)
-                    if pickup_driver_instance.employee_type =="Driver":
-                        collection_instance.pickup_driver = pickup_driver_instance
-                    else:
-                        return Response({"error":"Employe type is not  driver"})
-                except Employee.DoesNotExist:
-                    return Response({'error': 'Drop driver not found'}, status=status.HTTP_404_NOT_FOUND)
-
-
+           
             
 
 
