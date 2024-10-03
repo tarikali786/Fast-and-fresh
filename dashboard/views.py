@@ -120,16 +120,16 @@ class RouteListDashboardViewset(GenericViewSet):
 
 class AnalyticViewset(GenericViewSet):
     def list(self,request):
-        monthly_college_data = College.objects.annotate(month=TruncMonth('created_at')).values('month').annotate(college_count=Count('id')).order_by('month')
+        monthly_college_data = College.objects.annotate(month=TruncMonth('created_at')).values('month').annotate(count=Count('id')).order_by('month')
         college_data = list(monthly_college_data)
 
-        monthly_Student_data = Student.objects.annotate(month=TruncMonth('created_at')).values('month').annotate(student_count=Count('id')).order_by('month')
+        monthly_Student_data = Student.objects.annotate(month=TruncMonth('created_at')).values('month').annotate(count=Count('id')).order_by('month')
         student_data = list(monthly_Student_data)
 
-        monthly_campus_data = Campus.objects.annotate(month=TruncMonth('created_at')).values('month').annotate(campus_count=Count('id')).order_by('month')
+        monthly_campus_data = Campus.objects.annotate(month=TruncMonth('created_at')).values('month').annotate(count=Count('id')).order_by('month')
         campus_data = list(monthly_campus_data)
 
-        monthly_Collection_data = Collection.objects.annotate(month=TruncMonth('created_at')).values('month').annotate(campus_count=Count('id')).order_by('month')
+        monthly_Collection_data = Collection.objects.annotate(month=TruncMonth('created_at')).values('month').annotate(count=Count('id')).order_by('month')
         collection_data = list(monthly_Collection_data)
 
         total_earnings = College.objects.annotate(monthly_payment_float=Cast('monthly_payment', FloatField()))\
@@ -138,7 +138,7 @@ class AnalyticViewset(GenericViewSet):
         monthly_earnings = College.objects.annotate(month=TruncMonth('created_at'))\
                             .annotate(monthly_payment_float=Cast('monthly_payment', FloatField()))\
                             .values('month')\
-                            .annotate(total_earnings=Sum('monthly_payment_float'))\
+                            .annotate(count=Sum('monthly_payment_float'))\
                             .order_by('month')
         
         total_colleges = College.objects.count()
