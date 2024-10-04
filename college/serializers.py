@@ -584,16 +584,23 @@ class DryAreaSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         fill_area_data = validated_data.pop('fill_area', None)
         dry_area = DryArea.objects.create(**validated_data)
+        dry_area.isActive = True
+        dry_area.save()
         
         if fill_area_data:
             campus_id = fill_area_data.get('campus')
+
             filled = fill_area_data.get('filled')
-            campus = Campus.objects.get(id=campus_id)  # Assuming campus_id is a primary key, adjust as necessary
+            campus = Campus.objects.get(id=campus_id) 
             FilldArea.objects.create(campus=campus, filled=filled)
             
         return dry_area
 
    
+class DryAreaUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DryArea
+        fields = ['dry_area_id',"row","column","isActive"]
 
 
 

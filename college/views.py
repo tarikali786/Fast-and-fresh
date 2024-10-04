@@ -22,7 +22,7 @@ from .serializers import (EmployeeSerializer, EmployeeDailyImageSerializer,
                           EmployeeSignInserializer,GetCampusSerializer,RoutesSerializer,
                           LogisticbagNumberSerializer,FacultybagNumbersSerializer,DryAreaSerializer,
                           CollectionResponseSerializer,FilldAreaSerializer,OtherclothDaySheetSerializer,
-                          OtherClothBagNumberSerializer
+                          OtherClothBagNumberSerializer,DryAreaUpdateSerializer
                           )
 
 
@@ -1101,8 +1101,20 @@ class DryAreaViewSet(viewsets.ModelViewSet):
     lookup_field="uid"
 
 
+class DryAreasUpdateViewset(viewsets.GenericViewSet):
+    def update(self, request, uid):
+        try:
+            dry_area = DryArea.objects.get(uid=uid)
+        except DryArea.DoesNotExist:
+            return Response({"error": "Dry Area not found"}, status=status.HTTP_404_NOT_FOUND)
 
-
+        serializer = DryAreaUpdateSerializer(instance=dry_area, data=request.data, partial=True)
+        
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Successfully updated", "data": serializer.data}, status=status.HTTP_200_OK)
+        
+        return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 class DryAreaUpdateViewSet(viewsets.GenericViewSet):
     def update(self, request, uid):
         try:
