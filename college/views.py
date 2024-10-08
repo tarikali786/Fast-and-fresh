@@ -5,6 +5,7 @@ import json
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import logout
+from datetime import datetime, timedelta
 from django.shortcuts import get_object_or_404
 from college.models import (Employee, College,Campus,Faculty,Student,
                             WashingMashine, DryingMashine,Vehicle, VehicleExpenses,FoldingTable,
@@ -412,7 +413,8 @@ class CollectionViewSet(viewsets.GenericViewSet):
             
 
             # Update the ETA based on the college's schedule
-            collection_instance.ETA = college_instance.schedule
+            current_date = datetime.now().date()
+            collection_instance.delivery_date = current_date + timedelta(days=college_instance.schedule)
             if collection_instance.isActive ==False:
                 collection_instance.isActive = True
                 

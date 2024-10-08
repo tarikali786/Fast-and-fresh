@@ -249,7 +249,7 @@ class Collection(StatusMixin):
     segregation_supervisor = models.ForeignKey(Employee,  blank=True,null=True, on_delete=models.CASCADE, related_name='segregation_supervisions')
     drop_driver = models.ForeignKey(Employee,  blank=True,null=True,on_delete=models.CASCADE, related_name='drop_drivers')
     current_status = models.CharField(max_length=100, choices=CollectionStatus, blank=True,null=True )
-    ETA = models.IntegerField(  blank=True,null=True)  #fatch college shcedule
+    delivery_date = models.DateField(  blank=True,null=True) 
     student_remark = models.ManyToManyField(StudentRemark,blank=True)
     warehouse_remark = models.ManyToManyField(RemarkByWarehouse,blank=True)
 

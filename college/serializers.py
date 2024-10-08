@@ -659,7 +659,7 @@ class CollectionResponseSerializer(serializers.ModelSerializer):
             'drying_supervisor',
             'segregation_supervisor',
             'current_status',
-            'ETA',
+            'delivery_date',
             'student_remark',
             'warehouse_remark',
             'campus_pickup_bag_numbers',

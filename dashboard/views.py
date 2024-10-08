@@ -33,7 +33,7 @@ class CollegeListViewset(GenericViewSet):
     def list(self,request):
         try:
             college = College.objects.all()
-            serializer = CollegeSerializer(college,many=True)
+            serializer = CollegeDetailsSerializer(college,many=True)
             return Response({"data":serializer.data},status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error":str(e)},status=status.HTTP_400_BAD_REQUEST)
