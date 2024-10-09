@@ -414,7 +414,12 @@ class CollectionViewSet(viewsets.GenericViewSet):
 
             # Update the ETA based on the college's schedule
             current_date = datetime.now().date()
-            collection_instance.delivery_date = current_date + timedelta(days=college_instance.schedule)
+            collection_instance.expected_delivery_date = current_date + timedelta(days=college_instance.schedule)
+
+            if collection_instance.expected_delivery_date.weekday() == 6: 
+                collection_instance.expected_delivery_date += timedelta(days=1)
+
+
             if collection_instance.isActive ==False:
                 collection_instance.isActive = True
                 
@@ -495,13 +500,19 @@ class CollectionViewSet(viewsets.GenericViewSet):
             if current_status and collection_instance:
 
                 if collection_instance.current_status ==current_status:
-                    pass
+                    return Response({'message': 'Status is already up to date'}, status=status.HTTP_200_OK)
                 else:
+
+                    if current_status =='DELIVERED_TO_STUDENT':
+                        collection_instance.delivery_date = datetime.now().date()
+                        collection_instance.save()
+
                
                     previous_status_instance = PreviousStatus.objects.create(
                         status=collection_instance.current_status,
                         updated_time=collection_instance.updated_at
                     )
+
     
                     collection_instance.previous_status.add(previous_status_instance)
 

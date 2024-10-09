@@ -102,7 +102,7 @@ class CollectionDashboardSerializer(serializers.ModelSerializer):
     supervisor = EmployeeDashboard2Serializer(read_only =True)
     class Meta:
         model = Collection
-        fields = ["id",'uid','campus','total_cloths','total_uniforms',"supervisor",'delivery_date','isActive',"created_at"]
+        fields = ["id",'uid','campus','total_cloths','total_uniforms',"supervisor",'expected_delivery_date',"delivery_date",'isActive',"created_at"]
 
 
 
